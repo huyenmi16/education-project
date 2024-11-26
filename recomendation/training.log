@@ -1,0 +1,15 @@
+2024-11-24 21:59:42,595 - ERROR - Database connection error: 1045 (28000): Access denied for user 'root'@'localhost' (using password: YES)
+2024-11-24 21:59:42,596 - ERROR - Training failed: 1045 (28000): Access denied for user 'root'@'localhost' (using password: YES)
+2024-11-24 22:00:37,373 - INFO - Found 1 untrained reviews
+2024-11-24 22:00:37,374 - INFO - Creating new CollaborativeFiltering model
+2024-11-24 22:00:37,374 - INFO - Matrix updated successfully. New shape: (1, 1)
+2024-11-24 22:00:41,716 - INFO - Model saved successfully
+2024-11-24 22:00:41,736 - INFO - Updated trained status for 1 reviews
+2024-11-24 22:00:48,588 - INFO - Training completed successfully with 1 new reviews
+2024-11-24 22:01:08,806 - INFO - Found 0 untrained reviews
+2024-11-24 22:01:08,811 - INFO - No new reviews to train
+2024-11-24 22:02:49,994 - INFO - Found 1 untrained reviews
+2024-11-24 22:02:49,995 - INFO - Existing model loaded successfully
+2024-11-24 22:02:49,995 - INFO - Matrix updated successfully. New shape: (1, 1)
+2024-11-24 22:03:19,810 - INFO - Model saved successfully
+2024-11-24 22:03:19,822 - INFO - Updated trained status for 1 reviews

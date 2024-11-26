@@ -1,0 +1,71 @@
+.img-course{
+    display: flex;
+    height: auto;
+    width: 100%;
+    margin-left: 20px;
+    align-items: center;
+}
+.course-image{
+    height:45%;
+    width: 80%;
+    border-radius: 10px;
+    
+}
+
+.course-details {
+  
+   
+    border-radius: 5px;
+    background-color: #fafafa;
+}
+
+.course-details h1 {
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 16px;
+}
+
+.course-details p {
+    font-size: 16px;
+    line-height: 1.5;
+}
+button {
+    margin-top: 16px;
+    margin-bottom: 16px;
+}
+
+button:disabled {
+    background-color: gray;
+    color: white;
+    cursor: not-allowed;
+}
+
+/* Style for the collapse panel */
+.lesson-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+}
+
+.lesson-icon {
+    margin-right: 8px;
+}
+
+.lesson-title {
+    flex: 1;
+}
+
+.lesson-duration {
+    color: #999;
+}
+
+/* Style for the 'Expand All'/'Collapse All' toggle link */
+p[style*="cursor: 'pointer'"] {
+    margin-top: 16px;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+p[style*="cursor: 'pointer'"]:hover {
+    color: #1890ff;
+}

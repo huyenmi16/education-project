@@ -1,0 +1,19 @@
+id,title,description,instructor,duration,price,level,image
+2,Tiếng anh cơ bản,Tiếng anh dành cho người mới bắt đầu,Mr. Hang,"1 day, 20:00:00",500000.00,beginner,/media/course_images/toeic.jpg
+3,Lập trình javascript cơ bản,"Hiểu chi tiết về các khái niệm cơ bản trong JS
+Xây dựng được website đầu tiên kết hợp với JS
+Tự tin khi phỏng vấn với kiến thức vững chắc
+Có nền tảng để học các thư viện và framework JS
+Nắm chắc các tính năng trong phiên bản ES6
+Thành thạo DOM APIs để tương tác với trang web
+Ghi nhớ các khái niệm nhờ bài tập trắc nghiệm
+Nâng cao tư duy với các bài kiểm tra với testcases
+Các bài thực hành như Tabs, Music Player",F8,"1 day, 6:00:00",1000000.00,beginner,/media/course_images/1.png
+4,Lập trình Java nâng cao,"Giới thiệu các khái niệm nâng cao trong lập trình Java, bao gồm các kỹ thuật lập trình đối tượng, xử lý đồng thời và phát triển ứng dụng Java.",Mr. Tuan,"2 days, 12:00:00",2000000.00,advanced,/media/course_images/java_nang_cao.jpg
+5,Marketing kỹ thuật số cơ bản,"Khóa học giúp học viên làm quen với các công cụ và chiến lược marketing kỹ thuật số, từ SEO, SEM đến quảng cáo trên mạng xã hội.",Ms. Lan,"1 day, 6:00:00",1500000.00,beginner,/media/course_images/maketing.jpg
+6,Quản lý dự án cơ bản,"Cung cấp các kiến thức và kỹ năng cơ bản về quản lý dự án, bao gồm lập kế hoạch, phân công công việc và theo dõi tiến độ dự án.",Ms. Mai,"1 day, 21:00:00",1200000.00,beginner,/media/course_images/quan-ly-du-an.jpg
+7,Chụp ảnh nâng cao,"Khóa học này tập trung vào các kỹ thuật chụp ảnh nâng cao, bao gồm ánh sáng, góc chụp và chỉnh sửa hình ảnh để tạo ra những bức ảnh nghệ thuật.",Mr. Hoang,"1 day, 6:00:00",1800000.00,advanced,/media/course_images/chup-anh-mon-an-dep-11.jpg
+8,Phân tích tài chính cơ bản,"Cung cấp các kiến thức cơ bản về phân tích tài chính, giúp học viên hiểu và áp dụng các công cụ tài chính cơ bản để đưa ra quyết định đầu tư.",Mr. Long,"2 days, 2:00:00",2000000.00,beginner,/media/course_images/images.jpg
+9,Tiếng Anh thương mại,"Tập trung vào các kỹ năng tiếng Anh trong môi trường kinh doanh, bao gồm các từ vựng, thuật ngữ và kỹ năng giao tiếp trong các tình huống thương mại.",Ms. Hoa,"2 days, 12:00:00",3000000.00,intermediate,/media/course_images/images_1.jpg
+10,Lập trình web với HTML & CSS,"Khóa học này sẽ giúp bạn xây dựng các trang web đơn giản bằng cách sử dụng HTML và CSS, từ cấu trúc cơ bản đến các kỹ thuật bố cục và styling.",Mr. Viet,"1 day, 1:00:00",500000.00,beginner,/media/course_images/1533529295.jpg
+11,Thiết kế đồ họa nâng cao,"Giới thiệu các kỹ thuật thiết kế đồ họa nâng cao, bao gồm phần mềm Photoshop, Illustrator và các kỹ năng thiết kế sáng tạo.",Ms. Ngoc,"1 day, 6:00:00",1800000.00,advanced,/media/course_images/images_2.jpg
