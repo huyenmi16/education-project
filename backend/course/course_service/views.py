@@ -1,14 +1,23 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Course, CourseRegistration,CourseReview,Chapter,Lesson
+import os
+import sys
+
+from recomendation.course_recommendation import CourseRecommender, CollaborativeFiltering
+
+current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(current_dir)
+
+from .models import Course, CourseRegistration, CourseReview, Chapter, Lesson
 from .serializers import CourseSerializer
 from rest_framework import status
-from .serializers import CourseRegistrationSerializer,CourseReviewSerializer,ChapterSerializer,LessonSerializer
+from .serializers import CourseRegistrationSerializer, CourseReviewSerializer, ChapterSerializer, LessonSerializer
 import requests
 from rest_framework.exceptions import AuthenticationFailed
 from django.core.mail import send_mail
 from django.conf import settings
+
 
 class CourseListView(APIView):
     def get(self, request, format=None):
@@ -16,16 +25,17 @@ class CourseListView(APIView):
         serializer = CourseSerializer(courses, many=True)
         return Response(serializer.data)
 
+
 class CourseDetailView(APIView):
     def get(self, request, course_id, format=None):
         try:
             course = Course.objects.get(id=course_id)
         except Course.DoesNotExist:
             return Response({'error': 'Khóa học không tồn tại'}, status=status.HTTP_404_NOT_FOUND)
-        
+
         serializer = CourseSerializer(course)
         return Response(serializer.data)
-    
+
 
 class CourseRegistrationView(APIView):
     def post(self, request, format=None):
@@ -37,17 +47,18 @@ class CourseRegistrationView(APIView):
         # Gọi dịch vụ người dùng để lấy dữ liệu profile
         profile_url = "http://127.0.0.1:4000/api/profile/"
         headers = {'Authorization': token}
-        
+
         try:
             response = requests.get(profile_url, headers=headers)
             response.raise_for_status()  # Gây ra lỗi nếu status code không tốt
         except requests.exceptions.RequestException as e:
-            return Response({'error': 'Xác thực người dùng thất bại', 'details': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'error': 'Xác thực người dùng thất bại', 'details': str(e)},
+                            status=status.HTTP_401_UNAUTHORIZED)
 
         # Lấy dữ liệu người dùng từ response
         user_data = response.json()
         user_id = user_data.get('id')
-        
+
         if not user_id:
             return Response({'error': 'Dữ liệu profile người dùng không hợp lệ'}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -57,13 +68,13 @@ class CourseRegistrationView(APIView):
             return Response({'error': 'Người dùng đã đăng ký khóa học này'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Khi đã có user_id và người dùng chưa đăng ký khóa học, tạo bản ghi đăng ký
-        serializer = CourseRegistrationSerializer(data={'user_id': user_id, 'course': course_id,'is_registed':True})
+        serializer = CourseRegistrationSerializer(data={'user_id': user_id, 'course': course_id, 'is_registed': True})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
 
 class ListUserCourseRegistrationsAPIView(APIView):
 
@@ -73,65 +84,62 @@ class ListUserCourseRegistrationsAPIView(APIView):
         if not token:
             return Response({'error': 'Yêu cầu token xác thực'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        
         profile_url = "http://127.0.0.1:4000/api/profile/"
         headers = {'Authorization': token}
-        
+
         try:
             response = requests.get(profile_url, headers=headers)
             response.raise_for_status()  # Gây ra lỗi nếu status code không tốt
         except requests.exceptions.RequestException as e:
-            return Response({'error': 'Xác thực người dùng thất bại', 'details': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'error': 'Xác thực người dùng thất bại', 'details': str(e)},
+                            status=status.HTTP_401_UNAUTHORIZED)
 
         # Lấy dữ liệu người dùng từ response
         user_data = response.json()
         user_id = user_data.get('id')
-        
+
         if not user_id:
             return Response({'error': 'Dữ liệu người dùng không hợp lệ'}, status=status.HTTP_401_UNAUTHORIZED)
 
-
         # Truy vấn tất cả các CourseRegistration có user_id tương ứng
         course_registrations = CourseRegistration.objects.filter(user_id=user_id)
-        
+
         # Lấy danh sách các id của course đã đăng ký
         course_ids = course_registrations.values_list('course_id', flat=True)
 
         # Trả về danh sách id của các khóa học dưới dạng JSON
         return Response({'registered_course_ids': list(course_ids)})
-    
+
 
 class CheckRegistration(APIView):
 
-    def get(self, request,course_id):
+    def get(self, request, course_id):
         # Lấy token từ header
         token = request.headers.get('Authorization')
         if not token:
             return Response({'error': 'Yêu cầu token xác thực'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        
         profile_url = "http://127.0.0.1:4000/api/profile/"
         headers = {'Authorization': token}
-        
+
         try:
             response = requests.get(profile_url, headers=headers)
             response.raise_for_status()  # Gây ra lỗi nếu status code không tốt
         except requests.exceptions.RequestException as e:
-            return Response({'error': 'Xác thực người dùng thất bại', 'details': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'error': 'Xác thực người dùng thất bại', 'details': str(e)},
+                            status=status.HTTP_401_UNAUTHORIZED)
 
         # Lấy dữ liệu người dùng từ response
         user_data = response.json()
         user_id = user_data.get('id')
-        
+
         if not user_id:
             return Response({'error': 'Dữ liệu người dùng không hợp lệ'}, status=status.HTTP_401_UNAUTHORIZED)
 
-
-        
         # is_registered = CourseRegistration.objects.filter(user_id=user_id,course_id=course_id)
 
         try:
-        # Kiểm tra xem người dùng đã đăng ký khóa học chưa
+            # Kiểm tra xem người dùng đã đăng ký khóa học chưa
             is_registered = CourseRegistration.objects.filter(user_id=user_id, course_id=course_id).exists()
             return Response({"is_registered": is_registered})
         except CourseRegistration.DoesNotExist:
@@ -194,13 +202,9 @@ class UserCourseReviewView(APIView):
         # Serialize và trả về dữ liệu
         serializer = CourseReviewSerializer(reviews, many=True)
         return Response(serializer.data)
-    
-
-
 
 
 class ManageCourseView(APIView):
-
 
     def post(self, request, format=None):
         # Lấy token từ headers
@@ -234,7 +238,7 @@ class ManageCourseView(APIView):
         serializer = CourseSerializer(data=request.data)
         if serializer.is_valid():
             # Gán người tạo khóa học là giảng viên và khóa học chưa được phê duyệt
-            serializer.save(instructor=username,create_by=user_id,is_approved=False)
+            serializer.save(instructor=username, create_by=user_id, is_approved=False)
 
             admin_email = settings.EMAIL_HOST_USER
             send_mail(
@@ -243,8 +247,9 @@ class ManageCourseView(APIView):
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[admin_email],  # Gửi tới email của admin
             )
-            return Response({'message': 'Tạo khóa học thành công, khóa học đang chờ phê duyệt.', 'data': serializer.data}, status=status.HTTP_201_CREATED)
-
+            return Response(
+                {'message': 'Tạo khóa học thành công, khóa học đang chờ phê duyệt.', 'data': serializer.data},
+                status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -275,7 +280,8 @@ class ManageCourseView(APIView):
         try:
             course = Course.objects.get(id=course_id, created_by=user_id)
         except Course.DoesNotExist:
-            return Response({'error': 'Không tìm thấy khóa học hoặc bạn không có quyền sửa'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Không tìm thấy khóa học hoặc bạn không có quyền sửa'},
+                            status=status.HTTP_404_NOT_FOUND)
 
         # Chỉ giảng viên mới được sửa khóa học
         if role != "lecturer":
@@ -316,7 +322,8 @@ class ManageCourseView(APIView):
         try:
             course = Course.objects.get(id=course_id, created_by=user_id)
         except Course.DoesNotExist:
-            return Response({'error': 'Không tìm thấy khóa học hoặc bạn không có quyền xóa'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Không tìm thấy khóa học hoặc bạn không có quyền xóa'},
+                            status=status.HTTP_404_NOT_FOUND)
 
         # Chỉ giảng viên mới được xóa khóa học
         if role != "lecturer":
@@ -325,6 +332,7 @@ class ManageCourseView(APIView):
         # Xóa khóa học
         course.delete()
         return Response({'message': 'Đã xóa khóa học thành công'}, status=status.HTTP_204_NO_CONTENT)
+
 
 class GetAllCourse(APIView):
     def get(self, request, format=None):
@@ -387,7 +395,8 @@ class CreateChapterView(APIView):
         try:
             course = Course.objects.get(id=course_id, create_by=user_id)
         except Course.DoesNotExist:
-            return Response({'error': 'Khóa học không tồn tại hoặc bạn không có quyền thêm chương học'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Khóa học không tồn tại hoặc bạn không có quyền thêm chương học'},
+                            status=status.HTTP_404_NOT_FOUND)
 
         # Thêm chương học vào khóa học
         serializer = ChapterSerializer(data=request.data)
@@ -395,7 +404,6 @@ class CreateChapterView(APIView):
             serializer.save(course=course)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
 
     def put(self, request, chapter_id, format=None):
         token = request.headers.get('Authorization')
@@ -416,13 +424,15 @@ class CreateChapterView(APIView):
         role = user_data.get('role')
 
         if not user_id or role != 'lecturer':
-            return Response({'error': 'Chỉ giảng viên mới có thể chỉnh sửa chương học'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'error': 'Chỉ giảng viên mới có thể chỉnh sửa chương học'},
+                            status=status.HTTP_403_FORBIDDEN)
 
         # Kiểm tra chương học và khóa học có thuộc về giảng viên không
         try:
             chapter = Chapter.objects.get(id=chapter_id, course__create_by=user_id)
         except Chapter.DoesNotExist:
-            return Response({'error': 'Chương học không tồn tại hoặc bạn không có quyền chỉnh sửa'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Chương học không tồn tại hoặc bạn không có quyền chỉnh sửa'},
+                            status=status.HTTP_404_NOT_FOUND)
 
         # Cập nhật chương học
         serializer = ChapterSerializer(chapter, data=request.data, partial=True)
@@ -430,7 +440,7 @@ class CreateChapterView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     def delete(self, request, chapter_id, format=None):
         token = request.headers.get('Authorization')
         if not token:
@@ -456,14 +466,12 @@ class CreateChapterView(APIView):
         try:
             chapter = Chapter.objects.get(id=chapter_id, course__create_by=user_id)
         except Chapter.DoesNotExist:
-            return Response({'error': 'Chương học không tồn tại hoặc bạn không có quyền xóa'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Chương học không tồn tại hoặc bạn không có quyền xóa'},
+                            status=status.HTTP_404_NOT_FOUND)
 
         # Xóa chương học
         chapter.delete()
         return Response({'message': 'Xóa chương học thành công'}, status=status.HTTP_204_NO_CONTENT)
-
-
-
 
 
 class CreateLessonView(APIView):
@@ -492,7 +500,8 @@ class CreateLessonView(APIView):
         try:
             chapter = Chapter.objects.get(id=chapter_id, course__create_by=user_id)
         except Chapter.DoesNotExist:
-            return Response({'error': 'Chương học không tồn tại hoặc bạn không có quyền thêm bài học'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Chương học không tồn tại hoặc bạn không có quyền thêm bài học'},
+                            status=status.HTTP_404_NOT_FOUND)
 
         # Thêm bài học vào chương học
         serializer = LessonSerializer(data=request.data)
@@ -500,7 +509,6 @@ class CreateLessonView(APIView):
             serializer.save(chapter=chapter)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
     def put(self, request, lesson_id, format=None):
         token = request.headers.get('Authorization')
@@ -527,7 +535,8 @@ class CreateLessonView(APIView):
         try:
             lesson = Lesson.objects.get(id=lesson_id, chapter__course__create_by=user_id)
         except Lesson.DoesNotExist:
-            return Response({'error': 'Bài học không tồn tại hoặc bạn không có quyền chỉnh sửa'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Bài học không tồn tại hoặc bạn không có quyền chỉnh sửa'},
+                            status=status.HTTP_404_NOT_FOUND)
 
         # Cập nhật bài học
         serializer = LessonSerializer(lesson, data=request.data, partial=True)
@@ -535,8 +544,6 @@ class CreateLessonView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 
     def delete(self, request, lesson_id, format=None):
         token = request.headers.get('Authorization')
@@ -563,8 +570,56 @@ class CreateLessonView(APIView):
         try:
             lesson = Lesson.objects.get(id=lesson_id, chapter__course__create_by=user_id)
         except Lesson.DoesNotExist:
-            return Response({'error': 'Bài học không tồn tại hoặc bạn không có quyền xóa'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Bài học không tồn tại hoặc bạn không có quyền xóa'},
+                            status=status.HTTP_404_NOT_FOUND)
 
         # Xóa bài học
         lesson.delete()
         return Response({'message': 'Xóa bài học thành công'}, status=status.HTTP_204_NO_CONTENT)
+
+
+class CourseRecommendView(APIView):
+    def __init__(self):
+        super().__init__()
+        self.recommender = CourseRecommender()
+
+    def post(self, request, format=None):
+        try:
+            user_id = request.data.get('user_id')
+            course_id = request.data.get('course_id')
+            rating = request.data.get('rating')
+
+            reviews = CourseReview.objects.filter(user_id=user_id)
+            # Serialize và trả về dữ liệu
+            serializer = CourseReviewSerializer(reviews, many=True)
+            rated_courses = []
+            for data in serializer.data:
+                rated_courses.append(data['course_id'])
+            recommendations = self.recommender.recommend_courses(
+                user_id=user_id,
+                course_id=course_id,
+                rating=rating,
+                rated_courses=rated_courses
+            )
+            return Response(recommendations)
+            # course_ids = recommendations
+            #
+            # res = self.recommender.get_detailed_recommendations(course_details, filtered_recommendations)
+            #
+            # return rated_courses
+            # rated_courses = CourseReview.objects.filter(user_id=user_id)
+            # serializer = CourseSerializer(rated_courses, many=True)
+            # return Response(serializer.data)
+            # rated_coursess = rated_courses
+            # recommendations = self.recommender.recommend_courses(
+            #     user_id=user_id,
+            #     course_id=course_id,
+            #     rating=rating
+            # )
+            #
+            # return Response(recommendations)
+        except Exception as e:
+            return Response({
+                'error': str(e)
+            }, status=500)
+

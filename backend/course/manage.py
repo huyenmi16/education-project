@@ -3,6 +3,8 @@
 import os
 import sys
 
+from recomendation.collaborative_filtering import CollaborativeFiltering
+
 
 def main():
     """Run administrative tasks."""

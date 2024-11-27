@@ -1,5 +1,7 @@
 from django.urls import path
-from .views import CourseListView, CourseDetailView, CourseRegistrationView,ListUserCourseRegistrationsAPIView,CheckRegistration,UserCourseReviewView,ManageCourseView,CreateChapterView,CreateLessonView,GetAllCourse
+from .views import CourseListView, CourseDetailView, CourseRegistrationView, ListUserCourseRegistrationsAPIView, \
+    CheckRegistration, UserCourseReviewView, ManageCourseView, CreateChapterView, CreateLessonView, GetAllCourse, \
+    CourseRecommendView
 
 urlpatterns = [
     path('courses/', CourseListView.as_view(), name='course-list'),
@@ -15,4 +17,5 @@ urlpatterns = [
     path('chapters/<int:chapter_id>/lessons/', CreateLessonView.as_view(), name='create_lesson'),  # Tạo bài học
     path('lessons/<int:lesson_id>/', CreateLessonView.as_view(), name='update_delete_lesson'),  # Sửa, xóa bài học
     path('all-courses/', GetAllCourse.as_view(), name='manage_courses'),
+    path('recommendation/', CourseRecommendView.as_view(), name='recommendation'),
 ]

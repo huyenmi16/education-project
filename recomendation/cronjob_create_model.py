@@ -7,10 +7,10 @@ from collaborative_filtering import CollaborativeFiltering
 
 # Cấu hình logging
 logging.basicConfig(
-    filename='training.log',
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
+
 
 
 class ModelTrainer:
