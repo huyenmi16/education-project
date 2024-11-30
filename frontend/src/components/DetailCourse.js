@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Row, Col, Collapse, Button } from 'antd';
+import { Layout, Row, Col, Collapse, Button,Card } from 'antd';
 import { PlayCircleOutlined, FileTextOutlined } from '@ant-design/icons';
 import CourseReviews from './CourseReviews';
 import { useParams } from 'react-router-dom';
@@ -192,6 +192,24 @@ const DetailCourse = () => {
               <CourseReviews courseId={courseId} />
             </Col>
           </Row>
+
+            <Row gutter={16} style={{ marginTop: '40px' }}>
+              <Col span={24}>
+                <h2>Đề xuất khóa học</h2>
+                <Row gutter={16}>
+                 
+                    <Col xs={24} sm={8} md={6} lg={6}>
+                      <Card
+                        hoverable
+                        cover={<img alt="course"  />}
+                      >
+                        <Card.Meta />
+                      </Card>
+                    </Col>
+                
+                </Row>
+              </Col>
+            </Row>
           </div>
         </Content>
 

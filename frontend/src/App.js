@@ -12,7 +12,7 @@ import MyCourses from './components/MyCourses.js';
 import HistoryReport from './components/HistoryReport.js';
 import Profile from './components/Profile.js';
 import TeacherManage from './components/Teacher/TeacherManage.js'
-
+import DetailCourseT from './components/Teacher/DetailCourseT.js';
 function App() {
   return (
     <Router>
@@ -28,6 +28,7 @@ function App() {
           <Route path="/listquiz" element={<ListQuiz />} />
           <Route path="/quiz/:id" element={<DetailQuiz />} /> 
           <Route path="/teacher-manager" element={<TeacherManage />} /> 
+          <Route path="/courses/:id" element={<DetailCourseT />} /> 
         </Routes>
       </div>
     </Router>

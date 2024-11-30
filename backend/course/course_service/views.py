@@ -474,6 +474,50 @@ class CreateChapterView(APIView):
         return Response({'message': 'Xóa chương học thành công'}, status=status.HTTP_204_NO_CONTENT)
 
 
+
+class GetAllLessonsView(APIView):
+    def get(self, request, course_id, format=None):
+        # Lấy token từ headers
+        token = request.headers.get('Authorization')
+        if not token:
+            return Response({'error': 'Yêu cầu token xác thực'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Lấy thông tin người dùng từ profile API
+        profile_url = "http://127.0.0.1:4000/api/profile/"
+        headers = {'Authorization': token}
+        try:
+            response = requests.get(profile_url, headers=headers)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            return Response({'error': 'Xác thực người dùng thất bại', 'details': str(e)},
+                            status=status.HTTP_401_UNAUTHORIZED)
+
+        user_data = response.json()
+        user_id = user_data.get('id')
+        role = user_data.get('role')
+
+        if not user_id:
+            return Response({'error': 'Dữ liệu người dùng không hợp lệ'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Kiểm tra xem người dùng có quyền truy cập vào khóa học hay không
+        try:
+            course = Course.objects.get(id=course_id)
+        except Course.DoesNotExist:
+            return Response({'error': 'Khóa học không tồn tại'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Nếu người dùng là giảng viên, họ chỉ có thể xem các khóa học họ tạo
+        if role == 'lecturer' and course.create_by != user_id:
+            return Response({'error': 'Bạn không có quyền truy cập vào khóa học này'}, status=status.HTTP_403_FORBIDDEN)
+
+        # Nếu người dùng là admin hoặc học viên, cho phép xem danh sách bài học
+        lessons = Chapter.objects.filter(course=course)
+        serializer = ChapterSerializer(lessons, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
+
 class CreateLessonView(APIView):
     def post(self, request, chapter_id, format=None):
         token = request.headers.get('Authorization')

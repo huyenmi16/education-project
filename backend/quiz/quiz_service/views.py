@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Question, Quiz, UserQuizCompletion
-from .serializers import QuestionSerializer,QuizSerializer,QuizCompletionSerializer
+from .serializers import QuestionSerializer, QuizSerializer, QuizCompletionSerializer, OptionSerializer
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
@@ -178,7 +178,7 @@ class CheckSubmit(APIView):
 
 
 
-class ManageQuizView(APIView):
+class  ManageQuizView(APIView):
     def get_user_info(self, token):
         """Helper method to fetch user information from profile API."""
         profile_url = "http://127.0.0.1:4000/api/profile/"
@@ -219,6 +219,36 @@ class ManageQuizView(APIView):
             return Response({'message': 'Quiz được thêm thành công.', 'data': serializer.data}, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request, course_id, format=None):
+        """Get all quizzes for a course created by the lecturer."""
+        token = request.headers.get('Authorization')
+        if not token:
+            return Response({'error': 'Authorization token is required'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        user_data = self.get_user_info(token)
+        if not user_data:
+            return Response({'error': 'Failed to authenticate user'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        user_id = user_data.get('id')
+        role = user_data.get('role')
+
+        if role != "lecturer":
+            return Response({'error': 'Only lecturers can view quizzes for their courses'},
+                            status=status.HTTP_403_FORBIDDEN)
+
+        # # Check if the course belongs to the user
+        # try:
+        #     course = Course.objects.get(id=course_id, created_by=user_id)
+        # except Course.DoesNotExist:
+        #     return Response({'error': 'Course not found or you do not have permission to view quizzes'},
+        #                     status=status.HTTP_404_NOT_FOUND)
+
+        # Fetch all quizzes for the course
+        quizzes = Quiz.objects.filter(course_id=course_id)
+        serializer = QuizSerializer(quizzes, many=True)
+        return Response({'message': 'Quizzes retrieved successfully', 'data': serializer.data},
+                        status=status.HTTP_200_OK)
 
     def put(self, request, quiz_id, format=None):
         """Sửa thông tin quiz."""
@@ -279,3 +309,65 @@ class ManageQuizView(APIView):
         # Xóa quiz
         quiz.delete()
         return Response({'message': 'Quiz đã được xóa thành công.'}, status=status.HTTP_204_NO_CONTENT)
+
+
+
+    def post_question(self, request, quiz_id, format=None):
+        """Thêm câu hỏi mới cho quiz."""
+        token = request.headers.get('Authorization')
+        if not token:
+            return Response({'error': 'Yêu cầu token xác thực'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        user_data = self.get_user_info(token)
+        if not user_data:
+            return Response({'error': 'Xác thực người dùng thất bại'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        user_id = user_data.get('id')
+        role = user_data.get('role')
+
+        if role != "lecturer":
+            return Response({'error': 'Chỉ giảng viên mới có thể thêm câu hỏi'}, status=status.HTTP_403_FORBIDDEN)
+
+        # Kiểm tra xem quiz có tồn tại không
+        try:
+            quiz = Quiz.objects.get(id=quiz_id)
+        except Quiz.DoesNotExist:
+            return Response({'error': 'Không tìm thấy quiz'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Tạo câu hỏi mới
+        serializer = QuestionSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(quiz=quiz)
+            return Response({'message': 'Câu hỏi được thêm thành công.', 'data': serializer.data}, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def post_option(self, request, question_id, format=None):
+        """Thêm đáp án mới cho câu hỏi."""
+        token = request.headers.get('Authorization')
+        if not token:
+            return Response({'error': 'Yêu cầu token xác thực'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        user_data = self.get_user_info(token)
+        if not user_data:
+            return Response({'error': 'Xác thực người dùng thất bại'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        user_id = user_data.get('id')
+        role = user_data.get('role')
+
+        if role != "lecturer":
+            return Response({'error': 'Chỉ giảng viên mới có thể thêm đáp án'}, status=status.HTTP_403_FORBIDDEN)
+
+        # Kiểm tra xem câu hỏi có tồn tại không
+        try:
+            question = Question.objects.get(id=question_id)
+        except Question.DoesNotExist:
+            return Response({'error': 'Không tìm thấy câu hỏi'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Tạo đáp án mới
+        serializer = OptionSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(question=question)
+            return Response({'message': 'Đáp án được thêm thành công.', 'data': serializer.data}, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

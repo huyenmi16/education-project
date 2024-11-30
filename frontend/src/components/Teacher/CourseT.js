@@ -1,125 +1,351 @@
-import React, { useState, useEffect } from 'react';
-import { Button, Modal, Form, Input, Select, TimePicker, message, Card, Row, Col } from 'antd';
+import React, { useState,useEffect } from 'react';
+import { Button, Modal, Form, Input, Upload, Select, TimePicker, message, Card, Row, Col } from 'antd';
+import { UploadOutlined } from '@ant-design/icons';
 import axios from 'axios';
+import { useNavigate } from "react-router-dom";
+
+// import moment from 'moment';
 
 const { Option } = Select;
 
 const Course = () => {
   const [courseModalVisible, setCourseModalVisible] = useState(false);
   const [chapterModalVisible, setChapterModalVisible] = useState(false);
-  const [lessonModalVisible, setLessonModalVisible] = useState(false);
   const [courseForm] = Form.useForm();
   const [chapterForm] = Form.useForm();
-  const [lessonForm] = Form.useForm();
   const [courses, setCourses] = useState([]);
-  const [chapters, setChapters] = useState([]);
-  const [selectedCourse, setSelectedCourse] = useState(null);
+  const navigate = useNavigate();
+  const [lessonModalVisible, setLessonModalVisible] = useState(false);
+  const [lessonForm] = Form.useForm();
+  const [chapters, setChapters] = useState([]); // Danh sách chương của khóa học được chọn
 
-  // Fetch all courses
-  const fetchCourses = async () => {
-    const token = localStorage.getItem('accessToken');
-    if (!token) {
-      message.error('Bạn chưa đăng nhập!');
-      return;
-    }
-    try {
-      const response = await axios.get('http://127.0.0.1:8000/api/all-courses/', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setCourses(response.data);
-    } catch (error) {
-      message.error('Lỗi khi lấy danh sách khóa học!');
-    }
-  };
 
-  // Fetch chapters
-  const fetchChapters = async () => {
-    const token = localStorage.getItem('accessToken');
-    if (!token) {
-      message.error('Bạn chưa đăng nhập!');
-      return;
-    }
-    try {
-      const response = await axios.get('http://127.0.0.1:8000/api/all-chapters/', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setChapters(response.data);
-    } catch (error) {
-      message.error('Lỗi khi lấy danh sách chương!');
-    }
-  };
+  const [imageFile, setImageFile] = useState(null);
 
   useEffect(() => {
+    // Fetch courses for chapter modal dropdown
+    const fetchCourses = async () => {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        message.error('Bạn chưa đăng nhập!');
+        return;
+      }
+
+      try {
+        const response = await axios.get('http://127.0.0.1:8000/api/all-courses/', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setCourses(response.data); // Update courses state with fetched data
+      } catch (error) {
+        const errorMessage = error.response?.data?.error || 'Lỗi khi lấy danh sách khóa học!';
+        message.error(errorMessage);
+      }
+    };
+
     fetchCourses();
-    fetchChapters();
   }, []);
 
-  // Handle creating chapter
+  const handleStartNowClick = (id) => {
+    navigate(`/courses/${id}`); 
+  };
+
+
+  const handleCourseCreate = async (values) => {
+    const token = localStorage.getItem('accessToken'); // Get token from localStorage
+
+    if (!token) {
+      message.error('Bạn chưa đăng nhập!');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('title', values.courseName);
+    formData.append('description', values.description);
+    formData.append('duration', values.duration.format('HH:mm:ss')); // Convert to HH:mm:ss
+    formData.append('price', values.price);
+    formData.append('level', values.level);
+
+    // Check if there is an image and add it to the formData
+    if (imageFile) {
+      formData.append('image', imageFile); // Attach the image file directly
+    }
+
+    try {
+      const response = await axios.post(
+        'http://127.0.0.1:8000/api/add-courses/',  // API endpoint Django
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
+      message.success(response.data.message || 'Tạo khóa học thành công!');
+      setCourseModalVisible(false); // Close modal
+      courseForm.resetFields(); // Reset form fields
+      setImageFile(null); // Reset image file
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.error || 'Đã xảy ra lỗi khi tạo khóa học!';
+      message.error(errorMessage);
+    }
+  };
+
+  // Handle image file change
+  const handleImageChange = (info) => {
+    if (info.file.status === 'removed') {
+      setImageFile(null);
+    } else if (info.file.originFileObj) {
+      setImageFile(info.file.originFileObj); // Save image after selection
+    }
+  };
+
+
   const handleChapterCreate = async (values) => {
     const token = localStorage.getItem('accessToken');
     if (!token) {
       message.error('Bạn chưa đăng nhập!');
       return;
     }
+
+    const data = {
+      title: values.chapterName,
+      course: values.courseId,
+    };
+
     try {
-      await axios.post(
-        'http://127.0.0.1:8000/api/add-chapter/',
-        { title: values.title, course: values.courseId },
-        { headers: { Authorization: `Bearer ${token}` } }
+      const response = await axios.post(
+        `http://127.0.0.1:8000/api/courses/${values.courseId}/chapters/`,
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
-      message.success('Tạo chương thành công!');
+
+      message.success(response.data.message || 'Tạo chương thành công!');
       setChapterModalVisible(false);
       chapterForm.resetFields();
-      fetchChapters();
     } catch (error) {
-      message.error('Đã xảy ra lỗi khi tạo chương!');
+      const errorMessage = error.response?.data?.error || 'Đã xảy ra lỗi khi tạo chương!';
+      message.error(errorMessage);
     }
   };
 
-  // Handle creating lesson
+  const handleCourseChange = async (courseId) => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      message.error('Bạn chưa đăng nhập!');
+      return;
+    }
+  
+    try {
+      const response = await axios.get(
+        `http://127.0.0.1:8000/api/all-chapters/${courseId}/`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setChapters(response.data); // Cập nhật danh sách chương
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.error || 'Lỗi khi lấy danh sách chương!';
+      message.error(errorMessage);
+    }
+  };
+
+  
   const handleLessonCreate = async (values) => {
     const token = localStorage.getItem('accessToken');
     if (!token) {
       message.error('Bạn chưa đăng nhập!');
       return;
     }
+  
+    const data = {
+      title: values.lessonTitle,
+      chapter: values.chapterId,
+      content: values.content,
+      duration: values.duration.format('HH:mm:ss'),
+      type: values.type,
+    };
+  
     try {
-      await axios.post(
-        'http://127.0.0.1:8000/api/add-lesson/',
+      const response = await axios.post(
+        `http://127.0.0.1:8000/api/chapters/${values.chapterId}/lessons/`,
+        data,
         {
-          title: values.title,
-          chapter: values.chapterId,
-          content: values.content,
-          duration: values.duration.format('HH:mm:ss'),
-          type: values.type,
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
-      message.success('Tạo bài học thành công!');
+  
+      message.success(response.data.message || 'Tạo bài học thành công!');
       setLessonModalVisible(false);
-      lessonForm.resetFields();
+      lessonForm.resetFields(); // Reset form
     } catch (error) {
-      message.error('Đã xảy ra lỗi khi tạo bài học!');
+      const errorMessage =
+        error.response?.data?.error || 'Đã xảy ra lỗi khi tạo bài học!';
+      message.error(errorMessage);
     }
   };
+  
+
+
 
   return (
     <div>
-      <Button type="primary" onClick={() => setCourseModalVisible(true)}>Tạo Khóa Học</Button>
-      <Button type="primary" onClick={() => setChapterModalVisible(true)}>Tạo Chapter</Button>
-      <Button type="primary" onClick={() => setLessonModalVisible(true)}>Tạo Lesson</Button>
+      <Button
+        type="primary"
+        onClick={() => setCourseModalVisible(true)}
+        style={{ margin: '0 8px' }}
+      >
+        Create Course
+      </Button>
 
-      {/* Chapter Modal */}
+      <Button
+        type="primary"
+        style={{ margin: '0 8px' }}
+        onClick={() => setChapterModalVisible(true)}
+      >
+        Create Chapter
+      </Button>
+      <Button
+        type="primary"
+        style={{ margin: '0 8px' }}
+        onClick={() => setLessonModalVisible(true)} // Mở modal bài học
+      >
+        Create Lesson
+      </Button>
+
+
+      <div style={{ padding: "16px" }}>
+     
+
+      {/* Danh sách các khóa học */}
+      <Row gutter={[16, 16]}>
+        {courses.map((course) => (
+          <Col xs={24} sm={12} md={8} lg={6} key={course.id}>
+            <Card
+              hoverable
+              cover={<img alt={course.title} src={course.imageUrl} />}
+              style={{ width: "100%" }}
+            >
+              <Card.Meta
+                title={course.title}
+                description={
+                  <>
+                    <p>Price: ${course.price}</p>
+                    <span>
+                      Time: {course.duration} 
+                      <br></br>
+                      Teacher: {course.instructor} 
+                      <br></br>
+                      Level: {course.level}
+                    </span>
+                  </>
+                }
+              />
+              <Button
+                onClick={() => handleStartNowClick(course.id)}
+                type="primary"
+                style={{ marginTop: "16px" }}
+              >
+                See More
+              </Button>
+            </Card>
+          </Col>
+        ))}
+      </Row>
+    </div>
+
       <Modal
-        title="Tạo Chapter"
+        title="Tạo Khóa Học"
+        visible={courseModalVisible}
+        onCancel={() => setCourseModalVisible(false)}
+        footer={null}
+      >
+        <Form form={courseForm} onFinish={handleCourseCreate}>
+          <Form.Item
+            name="courseName"
+            label="Tên Khóa Học"
+            rules={[{ required: true, message: 'Vui lòng nhập tên khóa học!' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item name="description" label="Mô Tả">
+            <Input.TextArea />
+          </Form.Item>
+          <Form.Item
+            name="duration"
+            label="Thời Lượng"
+            rules={[{ required: true, message: 'Vui lòng chọn thời lượng!' }]}
+          >
+            <TimePicker format="HH:mm:ss" />
+          </Form.Item>
+          <Form.Item
+            name="price"
+            label="Giá Khóa Học"
+            rules={[{ required: true, message: 'Vui lòng nhập giá khóa học!' }]}
+          >
+            <Input type="number" />
+          </Form.Item>
+          <Form.Item
+            name="level"
+            label="Cấp Độ"
+            rules={[{ required: true, message: 'Vui lòng chọn cấp độ!' }]}
+          >
+            <Select placeholder="Chọn cấp độ">
+              <Option value="beginner">Beginner</Option>
+              <Option value="intermediate">Intermediate</Option>
+              <Option value="advanced">Advanced</Option>
+            </Select>
+          </Form.Item>
+
+          {/* Image upload */}
+          <Form.Item
+            name="image"
+            label="Hình Ảnh"
+            valuePropName="fileList"
+            getValueFromEvent={(e) => e?.fileList}
+            rules={[{ required: true, message: 'Vui lòng chọn hình ảnh!' }]}
+          >
+            <Upload
+              listType="picture"
+              beforeUpload={() => false} // Prevent auto-upload
+              onChange={handleImageChange}
+              maxCount={1} // Only allow one image
+            >
+              <Button icon={<UploadOutlined />}>Chọn Ảnh</Button>
+            </Upload>
+          </Form.Item>
+
+          <Form.Item>
+            <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
+              Xác Nhận
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* modal them chapter */}
+
+      <Modal
+        title="Tạo Chương"
         visible={chapterModalVisible}
         onCancel={() => setChapterModalVisible(false)}
-        footer={null}>
+        footer={null}
+      >
         <Form form={chapterForm} onFinish={handleChapterCreate}>
           <Form.Item
             name="courseId"
             label="Khóa Học"
-            rules={[{ required: true, message: 'Vui lòng chọn khóa học!' }]}>
+            rules={[{ required: true, message: 'Vui lòng chọn khóa học!' }]}
+          >
             <Select placeholder="Chọn khóa học">
               {courses.map((course) => (
                 <Option key={course.id} value={course.id}>
@@ -129,9 +355,10 @@ const Course = () => {
             </Select>
           </Form.Item>
           <Form.Item
-            name="title"
-            label="Tên Chapter"
-            rules={[{ required: true, message: 'Vui lòng nhập tên chapter!' }]}>
+            name="chapterName"
+            label="Tên Chương"
+            rules={[{ required: true, message: 'Vui lòng nhập tên chương!' }]}
+          >
             <Input />
           </Form.Item>
           <Form.Item>
@@ -142,61 +369,94 @@ const Course = () => {
         </Form>
       </Modal>
 
-      {/* Lesson Modal */}
+      {/* Modal tạo lesson */}
+
       <Modal
-        title="Tạo Lesson"
-        visible={lessonModalVisible}
-        onCancel={() => setLessonModalVisible(false)}
-        footer={null}>
-        <Form form={lessonForm} onFinish={handleLessonCreate}>
-          <Form.Item
-            name="chapterId"
-            label="Chapter"
-            rules={[{ required: true, message: 'Vui lòng chọn chapter!' }]}>
-            <Select placeholder="Chọn chapter">
-              {chapters.map((chapter) => (
-                <Option key={chapter.id} value={chapter.id}>
-                  {chapter.title}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-          <Form.Item
-            name="title"
-            label="Tên Lesson"
-            rules={[{ required: true, message: 'Vui lòng nhập tên lesson!' }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="content"
-            label="Nội Dung"
-            rules={[{ required: true, message: 'Vui lòng nhập nội dung!' }]}>
-            <Input.TextArea />
-          </Form.Item>
-          <Form.Item
-            name="duration"
-            label="Thời Lượng"
-            rules={[{ required: true, message: 'Vui lòng chọn thời lượng!' }]}>
-            <TimePicker format="HH:mm:ss" />
-          </Form.Item>
-          <Form.Item
-            name="type"
-            label="Loại"
-            rules={[{ required: true, message: 'Vui lòng chọn loại bài học!' }]}>
-            <Select placeholder="Chọn loại">
-              <Option value="video">Video</Option>
-              <Option value="article">Article</Option>
-              <Option value="quiz">Quiz</Option>
-              <Option value="document">Document</Option>
-            </Select>
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
-              Xác Nhận
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
+  title="Tạo Bài Học"
+  visible={lessonModalVisible}
+  onCancel={() => setLessonModalVisible(false)}
+  footer={null}
+>
+  <Form form={lessonForm} onFinish={handleLessonCreate}>
+    {/* Chọn khóa học */}
+    <Form.Item
+      name="courseId"
+      label="Khóa Học"
+      rules={[{ required: true, message: 'Vui lòng chọn khóa học!' }]}
+    >
+      <Select
+        placeholder="Chọn khóa học"
+        onChange={handleCourseChange} // Khi chọn khóa học
+      >
+        {courses.map((course) => (
+          <Option key={course.id} value={course.id}>
+            {course.title}
+          </Option>
+        ))}
+      </Select>
+    </Form.Item>
+
+    {/* Chọn chương */}
+    <Form.Item
+      name="chapterId"
+      label="Chương"
+      rules={[{ required: true, message: 'Vui lòng chọn chương!' }]}
+    >
+      <Select placeholder="Chọn chương">
+        {chapters.map((chapter) => (
+          <Option key={chapter.id} value={chapter.id}>
+            {chapter.title}
+          </Option>
+        ))}
+      </Select>
+    </Form.Item>
+
+    {/* Tên bài học */}
+    <Form.Item
+      name="lessonTitle"
+      label="Tên Bài Học"
+      rules={[{ required: true, message: 'Vui lòng nhập tên bài học!' }]}
+    >
+      <Input />
+    </Form.Item>
+
+    {/* Nội dung */}
+    <Form.Item name="content" label="Nội Dung">
+      <Input.TextArea />
+    </Form.Item>
+
+    {/* Thời lượng */}
+    <Form.Item
+      name="duration"
+      label="Thời Lượng"
+      rules={[{ required: true, message: 'Vui lòng chọn thời lượng!' }]}
+    >
+      <TimePicker format="HH:mm:ss" />
+    </Form.Item>
+
+    {/* Loại bài học */}
+    <Form.Item
+      name="type"
+      label="Loại Bài Học"
+      rules={[{ required: true, message: 'Vui lòng chọn loại bài học!' }]}
+    >
+      <Select placeholder="Chọn loại bài học">
+        <Option value="video">Video</Option>
+        <Option value="article">Article</Option>
+        <Option value="quiz">Quiz</Option>
+        <Option value="document">Document</Option>
+      </Select>
+    </Form.Item>
+
+    <Form.Item>
+      <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
+        Xác Nhận
+      </Button>
+    </Form.Item>
+  </Form>
+</Modal>
+
+
     </div>
   );
 };
