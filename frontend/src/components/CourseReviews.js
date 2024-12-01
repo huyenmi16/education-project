@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { List, Form, Input, Button, Rate, message } from "antd";
+import { List, Form, Input, Button, Rate, message, Card } from "antd";
 import axios from "axios";
 
 const { TextArea } = Input;
@@ -9,6 +9,7 @@ const CourseReviews = ({ courseId }) => {
   const [newReview, setNewReview] = useState("");
   const [newRating, setNewRating] = useState(0); // Rating state
   const [loading, setLoading] = useState(false);
+  const [recommendedCourses, setRecommendedCourses] = useState([]); // New state for recommended courses
 
   // Fetch reviews
   useEffect(() => {
@@ -42,6 +43,7 @@ const CourseReviews = ({ courseId }) => {
 
     setLoading(true);
     try {
+      // Submit review
       const response = await axios.post(
         `http://127.0.0.1:8000/api/course/${courseId}/review/`,
         { rating: newRating, review: newReview }, // Send rating and review
@@ -52,6 +54,26 @@ const CourseReviews = ({ courseId }) => {
       setNewReview("");
       setNewRating(0); // Reset rating
       message.success("Gửi đánh giá thành công!");
+
+      // Fetch recommended courses
+      const userId = localStorage.getItem("userId"); // Assuming userId is stored in localStorage
+      const recommendationsResponse = await axios.post(
+        `http://127.0.0.1:8000/api/recommendation/`,
+        {
+          user_id: userId,
+          course_id: courseId,
+          rating: newRating
+
+          
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+     
+      d
+      setRecommendedCourses(recommendationsResponse.data); // Set recommended courses data
     } catch (error) {
       console.error("Error submitting review:", error);
       message.error(
@@ -107,6 +129,27 @@ const CourseReviews = ({ courseId }) => {
           </Button>
         </Form.Item>
       </Form>
+
+      {/* Section for recommended courses */}
+      {recommendedCourses.length > 0 && (
+        <div style={{ marginTop: "24px" }}>
+          <h3>Khóa học đề xuất</h3>
+          <List
+            grid={{ gutter: 16, column: 4 }}
+            dataSource={recommendedCourses}
+            renderItem={(course) => (
+              <List.Item>
+                <Card
+                  hoverable
+                  cover={<img alt={course.name} src={course.image_url} />}
+                >
+                  <Card.Meta title={course.name} description={course.description} />
+                </Card>
+              </List.Item>
+            )}
+          />
+        </div>
+      )}
     </div>
   );
 };

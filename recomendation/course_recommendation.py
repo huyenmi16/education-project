@@ -16,7 +16,7 @@ class CourseRecommender:
         self.db_config = {
             'host': 'localhost',
             'user': 'root',
-            'password': '12345',
+            'password': '123456',
             'database': 'course_service',
             'port': '3306'
         }
