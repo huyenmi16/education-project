@@ -1,5 +1,6 @@
 from rest_framework.views import APIView
-from .serializers import StudentSerializer, LecturerRegistrationSerializer,LoginStudentSerializer, UserInfoSerializer, ChangePasswordSerializer,UpdateProfileSerializer, LoginLecturerSerializer
+from .serializers import StudentSerializer, LecturerRegistrationSerializer, LoginStudentSerializer, UserInfoSerializer, \
+    ChangePasswordSerializer, UpdateProfileSerializer, LoginLecturerSerializer
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework import status
@@ -13,22 +14,22 @@ from .authentication import SafeJWTAuthentication
 
 class StudentRegistrationView(APIView):
     permission_classes = [AllowAny]
-    
+
     def post(self, request):
         # Kiểm tra xem username, email, hoặc phone_number đã tồn tại chưa
         username = request.data.get('username')
         email = request.data.get('email')
         phone_number = request.data.get('phone_number')
-        
+
         if User.objects.filter(username=username).exists():
             return Response({'error': 'Tên đăng nhập đã tồn tại!'}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         if User.objects.filter(email=email).exists():
             return Response({'error': 'Email đã tồn tại!'}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         if User.objects.filter(phone_number=phone_number).exists():
             return Response({'error': 'Số điện thoại đã tồn tại!'}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         # Sử dụng serializer để validate và xử lý dữ liệu đầu vào
         serializer = StudentSerializer(data=request.data)
         if serializer.is_valid():
@@ -46,29 +47,29 @@ class StudentRegistrationView(APIView):
 
                 }
             }, status=status.HTTP_201_CREATED)
-        
+
         # Trả về lỗi nếu dữ liệu không hợp lệ
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LecturerRegistrationView(APIView):
     permission_classes = [AllowAny]
-    
+
     def post(self, request):
         # Kiểm tra xem username, email, hoặc phone_number đã tồn tại chưa
         username = request.data.get('username')
         email = request.data.get('email')
         phone_number = request.data.get('phone_number')
-        
+
         if User.objects.filter(username=username).exists():
             return Response({'error': 'Tên đăng nhập đã tồn tại!'}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         if User.objects.filter(email=email).exists():
             return Response({'error': 'Email đã tồn tại!'}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         if User.objects.filter(phone_number=phone_number).exists():
             return Response({'error': 'Số điện thoại đã tồn tại!'}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         # Sử dụng serializer để validate và xử lý dữ liệu đầu vào
         serializer = LecturerRegistrationSerializer(data=request.data)
         if serializer.is_valid():
@@ -84,8 +85,9 @@ class LecturerRegistrationView(APIView):
                 recipient_list=[admin_email],  # Gửi tới email của admin
             )
 
-            return Response({'message': 'Đăng ký thành công, tài khoản đang chờ phê duyệt.'}, status=status.HTTP_201_CREATED)
-        
+            return Response({'message': 'Đăng ký thành công, tài khoản đang chờ phê duyệt.'},
+                            status=status.HTTP_201_CREATED)
+
         # Nếu dữ liệu không hợp lệ, trả về lỗi
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -109,7 +111,7 @@ class LoginView(APIView):
             }, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
 
 class LoginLectureView(APIView):
     permission_classes = [AllowAny]
@@ -130,16 +132,18 @@ class LoginLectureView(APIView):
             }, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
 
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
-    authentication_classes=[SafeJWTAuthentication]
+    authentication_classes = [SafeJWTAuthentication]
+
     def get(self, request):
         user = request.user
         serializer = UserInfoSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
+
 class ChangePasswordView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [SafeJWTAuthentication]
@@ -152,7 +156,8 @@ class ChangePasswordView(APIView):
             user.save()
             return Response({'message': 'Password changed successfully.'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
+
 class UpdateProfileView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [SafeJWTAuthentication]
@@ -163,10 +168,22 @@ class UpdateProfileView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
+
 class VerifyTokenView(APIView):
     authentication_classes = [SafeJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         return Response({'message': 'Token is valid.'}, status=status.HTTP_200_OK)
+
+
+class UserDetailView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        user_ids = request.data.get('user_ids', [])
+        users = User.objects.filter(id__in=user_ids).all()
+        serializer = StudentSerializer(users, many=True)
+        return Response(serializer.data)
+
