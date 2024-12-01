@@ -81,10 +81,10 @@ const Quiz = () => {
       </Button>
 
       <Button type="primary" style={{ margin: '0 8px' }}>
-        Tạo Bộ Câu Hỏi
+        Tạo Câu Hỏi Trong Bộ
       </Button>
       <Button type="primary" style={{ margin: '0 8px' }}>
-        Tạo Bộ Câu Trả Lời
+        Tạo Câu Trả Lời Trong Bộ
       </Button>
 
       {/* Quiz Creation Modal */}

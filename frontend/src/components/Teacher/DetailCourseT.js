@@ -26,13 +26,22 @@ const DetailCourseT = () => {
   }, [id]);
 
   const convertDurationToHours = (duration) => {
+  if (!duration) return "0h 0m 0s";
+
+  let hours, minutes, seconds;
+
+  if (duration.includes(" ")) {
+    // Format: "X days HH:MM:SS"
     const [days, time] = duration.split(" ");
-    const [hours, minutes, seconds] = time.split(":");
-    const totalHours = parseInt(days) * 24 + parseInt(hours);
-    const totalMinutes = parseInt(minutes);
-    const totalSeconds = parseInt(seconds);
-    return `${totalHours}h ${totalMinutes}m ${totalSeconds}s`;
-  };
+    [hours, minutes, seconds] = time.split(":");
+    hours = parseInt(days) * 24 + parseInt(hours);
+  } else {
+    // Format: "HH:MM:SS"
+    [hours, minutes, seconds] = duration.split(":");
+  }
+
+  return `${parseInt(hours)}h ${parseInt(minutes)}m ${parseInt(seconds)}s`;
+};
 
   if (!course) {
     return <div>Loading...</div>;

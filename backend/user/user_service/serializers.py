@@ -30,7 +30,7 @@ class StudentSerializer(serializers.ModelSerializer):
             role=validated_data['role'],  # Thêm role vào quá trình tạo
             phone_number=validated_data.get('phone_number', ''),
             address=validated_data.get('address', ''),
-            is_active=validated_data.get('is_active', True),
+            is_active=True,
             image=validated_data.get('image', None)
         )
         return user

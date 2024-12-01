@@ -72,7 +72,7 @@ const CourseReviews = ({ courseId }) => {
       );
 
      
-      d
+
       setRecommendedCourses(recommendationsResponse.data); // Set recommended courses data
     } catch (error) {
       console.error("Error submitting review:", error);
