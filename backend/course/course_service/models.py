@@ -62,4 +62,4 @@ class CourseReview(models.Model):
     review = models.TextField(blank=True, null=True)  # Optional review text
     review_date = models.DateTimeField(auto_now_add=True)
     trained = models.BooleanField(default=False)
-    
+    name = models.CharField(max_length=255,default="")

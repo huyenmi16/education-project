@@ -32,7 +32,7 @@ class CourseRegistrationSerializer(serializers.ModelSerializer):
 class CourseReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = CourseReview
-        fields = ['user_id', 'course_id', 'rating', 'review', 'review_date']
+        fields = ['user_id', 'course_id', 'rating', 'review', 'review_date','name']
         read_only_fields = ['user_id', 'course_id', 'review_date']
 
     def validate_rating(self, value):

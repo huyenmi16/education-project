@@ -95,7 +95,7 @@ const CourseReviews = ({ courseId }) => {
             <List.Item.Meta
               title={
                 <>
-                  <strong>Người dùng {item.user_id}</strong> {/* Displaying user ID */}
+                  <strong>Người dùng {item.name}</strong> {/* Displaying user ID */}
                   <Rate disabled defaultValue={item.rating} style={{ marginLeft: 8 }} />
                 </>
               }

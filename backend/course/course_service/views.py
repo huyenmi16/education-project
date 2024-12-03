@@ -168,6 +168,7 @@ class UserCourseReviewView(APIView):
         # Lấy dữ liệu người dùng từ response
         user_data = response.json()
         user_id = user_data.get('id')
+        username = user_data.get('username')
 
         if not user_id:
             return Response({'error': 'Dữ liệu người dùng không hợp lệ'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -190,7 +191,7 @@ class UserCourseReviewView(APIView):
         serializer = CourseReviewSerializer(data=request.data)
         if serializer.is_valid():
             # Lưu đánh giá mới với thông tin user_id và khóa học
-            serializer.save(user_id=user_id, course_id=course)
+            serializer.save(user_id=user_id, course_id=course, name=username)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
