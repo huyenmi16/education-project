@@ -3,7 +3,7 @@ import mysql.connector
 import pickle
 import logging
 
-from recomendation.collaborative_filtering import CollaborativeFiltering
+# from collaborative_filtering import CollaborativeFiltering
 
 logging.basicConfig(
     level=logging.INFO,
@@ -31,8 +31,8 @@ class CourseRecommender:
         try:
             with open(self.model_path, 'rb') as f:
                 model = pickle.load(f)
-            if not isinstance(model, CollaborativeFiltering):
-                raise ValueError("Invalid model type")
+            # if not isinstance(model, CollaborativeFiltering):
+            #     raise ValueError("Invalid model type")
             logging.info("Model loaded successfully")
             return model
         except Exception as e:
@@ -223,5 +223,5 @@ class CourseRecommender:
 if __name__ == "__main__":
     recommender = CourseRecommender()
     # Test với một user và khóa học cụ thể
-    recommendations = recommender.recommend_courses(user_id=5, course_id=9, rating=5)
+    recommendations = recommender.recommend_courses(user_id=3, course_id=3, rating=5)
     print(recommender.format_recommendations(recommendations))

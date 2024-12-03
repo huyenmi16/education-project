@@ -3,7 +3,7 @@
 import os
 import sys
 
-# from recomendation.collaborative_filtering import CollaborativeFiltering
+from recomendation.cronjob_create_model import CollaborativeFiltering
 
 
 def main():

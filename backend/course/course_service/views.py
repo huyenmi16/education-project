@@ -4,7 +4,7 @@ from rest_framework import status
 import os
 import sys
 
-from recomendation.course_recommendation import CourseRecommender, CollaborativeFiltering
+from recomendation.course_recommendation import CourseRecommender
 
 current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(current_dir)
@@ -630,7 +630,15 @@ class CourseRecommendView(APIView):
 
     def post(self, request, format=None):
         try:
-            user_id = request.data.get('user_id')
+            token = request.headers.get('Authorization')
+            profile_url = "http://127.0.0.1:4000/api/profile/"
+            headers = {'Authorization': token}
+            response = requests.get(profile_url, headers=headers)
+
+            user_data = response.json()
+            user_id = user_data.get('id')
+            if not user_id:
+                user_id = request.data.get('user_id')
             course_id = request.data.get('course_id')
             rating = request.data.get('rating')
 
@@ -646,23 +654,11 @@ class CourseRecommendView(APIView):
                 rating=rating,
                 rated_courses=rated_courses
             )
-            return Response(recommendations)
-            # course_ids = recommendations
-            #
-            # res = self.recommender.get_detailed_recommendations(course_details, filtered_recommendations)
-            #
-            # return rated_courses
-            # rated_courses = CourseReview.objects.filter(user_id=user_id)
-            # serializer = CourseSerializer(rated_courses, many=True)
-            # return Response(serializer.data)
-            # rated_coursess = rated_courses
-            # recommendations = self.recommender.recommend_courses(
-            #     user_id=user_id,
-            #     course_id=course_id,
-            #     rating=rating
-            # )
-            #
-            # return Response(recommendations)
+            course_ids = [rec['course_id'] for rec in recommendations]
+
+            recommended_courses = Course.objects.filter(id__in=course_ids, is_approved=True)
+            serializer = CourseSerializer(recommended_courses, many=True)
+            return Response(serializer.data)
         except Exception as e:
             return Response({
                 'error': str(e)
