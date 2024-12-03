@@ -24,10 +24,7 @@ const QuestionModal = ({ visible, onClose, courses, onSuccess }) => {
                 },
             });
     
-            // console.log('Quizzes response:', response.data);  // In dữ liệu trả về từ API
-            // const quizzesData = Array.isArray(response.data.data) ? response.data.data : [];
-            //  setQuizzes(quizzesData);  // Cập nhật state quizzes
-            // console.log(quizzes)
+          
 
             if (response.data && Array.isArray(response.data.data)) {
                 const quizzesData = response.data.data;

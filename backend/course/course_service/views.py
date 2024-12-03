@@ -279,7 +279,7 @@ class ManageCourseView(APIView):
 
         # Lấy khóa học cần sửa
         try:
-            course = Course.objects.get(id=course_id, created_by=user_id)
+            course = Course.objects.get(id=course_id, create_by=user_id)
         except Course.DoesNotExist:
             return Response({'error': 'Không tìm thấy khóa học hoặc bạn không có quyền sửa'},
                             status=status.HTTP_404_NOT_FOUND)
@@ -321,7 +321,7 @@ class ManageCourseView(APIView):
 
         # Lấy khóa học cần xóa
         try:
-            course = Course.objects.get(id=course_id, created_by=user_id)
+            course = Course.objects.get(id=course_id, create_by=user_id)
         except Course.DoesNotExist:
             return Response({'error': 'Không tìm thấy khóa học hoặc bạn không có quyền xóa'},
                             status=status.HTTP_404_NOT_FOUND)

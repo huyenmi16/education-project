@@ -1,10 +1,10 @@
 import React, { useState,useEffect } from 'react';
 import { Button, Modal, Form, Input, Upload, Select, TimePicker, message, Card, Row, Col } from 'antd';
-import { UploadOutlined } from '@ant-design/icons';
+import { UploadOutlined ,DeleteOutlined,EditOutlined} from '@ant-design/icons';
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
 
-// import moment from 'moment';
+import moment from 'moment';
 
 const { Option } = Select;
 
@@ -18,7 +18,10 @@ const Course = () => {
   const [lessonModalVisible, setLessonModalVisible] = useState(false);
   const [lessonForm] = Form.useForm();
   const [chapters, setChapters] = useState([]); // Danh sách chương của khóa học được chọn
-
+  const [editCourseModalVisible, setEditCourseModalVisible] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState(null); // Lưu thông tin khóa học đang chỉnh sửa
+  const [editCourseForm] = Form.useForm(); // Form cho modal chỉnh sửa
+  
 
   const [imageFile, setImageFile] = useState(null);
 
@@ -50,6 +53,19 @@ const Course = () => {
   const handleStartNowClick = (id) => {
     navigate(`/courses/${id}`); 
   };
+
+  const handleEditCourseClick = (course) => {
+    setSelectedCourse(course);
+    setEditCourseModalVisible(true);
+    editCourseForm.setFieldsValue({
+      courseName: course.title,
+      description: course.description,
+      duration: course.duration ? Number(course.duration) : '',
+      price: course.price,
+      level: course.level,
+    });
+  };
+  
 
 
   const handleCourseCreate = async (values) => {
@@ -95,6 +111,76 @@ const Course = () => {
     }
   };
 
+  const handleEditCourse = async (values) => {
+    const token = localStorage.getItem('accessToken');
+  
+    if (!token) {
+      message.error('Bạn chưa đăng nhập!');
+      return;
+    }
+  
+    
+    const formattedDuration = moment(values.duration, 'HH:mm:ss').format('HH:mm:ss');
+    const formData = new FormData();
+    formData.append('title', values.courseName);
+    formData.append('description', values.description);
+    formData.append('duration', formattedDuration);
+    formData.append('price', values.price);
+    formData.append('level', values.level);
+  
+    if (imageFile) {
+      formData.append('image', imageFile); // Nếu có ảnh mới
+    }
+  
+    try {
+      const response = await axios.put(
+        `http://127.0.0.1:8000/api/update-delete/${selectedCourse.id}/`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+  
+      message.success(response.data.message || 'Cập nhật khóa học thành công!');
+      setEditCourseModalVisible(false);
+      setImageFile(null);
+      // Reload danh sách khóa học
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.error || 'Đã xảy ra lỗi khi cập nhật khóa học!';
+      message.error(errorMessage);
+    }
+  };
+  
+
+  const handleDeleteCourse = async (courseId) => {
+    const token = localStorage.getItem('accessToken');
+  
+    if (!token) {
+      message.error('Bạn chưa đăng nhập!');
+      return;
+    }
+  
+    try {
+      const response = await axios.delete(
+        `http://127.0.0.1:8000/api/update-delete/${courseId}/`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+  
+      message.success(response.data.message || 'Xóa khóa học thành công!');
+      // Reload danh sách khóa học
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.error || 'Đã xảy ra lỗi khi xóa khóa học!';
+      message.error(errorMessage);
+    }
+  };
+  
   // Handle image file change
   const handleImageChange = (info) => {
     if (info.file.status === 'removed') {
@@ -250,13 +336,19 @@ const Course = () => {
                   </>
                 }
               />
-              <Button
-                onClick={() => handleStartNowClick(course.id)}
-                type="primary"
-                style={{ marginTop: "16px" }}
-              >
-                See More
+
+            <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'space-between' }}>
+                <Button onClick={() => handleEditCourseClick(course)} icon={<EditOutlined />} />
+                <Button onClick={() => handleDeleteCourse(course.id)} icon={<DeleteOutlined />} danger />
+                <Button
+                    onClick={() => handleStartNowClick(course.id)}
+                    type="primary"
+                    style={{ marginTop: "16px" }}
+                  >
+                    See More
               </Button>
+              </div>
+             
             </Card>
           </Col>
         ))}
@@ -448,6 +540,72 @@ const Course = () => {
       </Select>
     </Form.Item>
 
+    <Form.Item>
+      <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
+        Xác Nhận
+      </Button>
+    </Form.Item>
+  </Form>
+     </Modal>
+
+
+     <Modal
+  title="Chỉnh Sửa Khóa Học"
+  visible={editCourseModalVisible}
+  onCancel={() => setEditCourseModalVisible(false)}
+  footer={null}
+>
+  <Form form={editCourseForm} onFinish={handleEditCourse}>
+    <Form.Item
+      name="courseName"
+      label="Tên Khóa Học"
+      rules={[{ required: true, message: 'Vui lòng nhập tên khóa học!' }]}
+    >
+      <Input />
+    </Form.Item>
+    <Form.Item name="description" label="Mô Tả">
+      <Input.TextArea />
+    </Form.Item>
+    <Form.Item
+      name="duration"
+      label="Thời Lượng"
+      rules={[{ required: true, message: 'Vui lòng chọn thời lượng!' }]}
+    >
+      <TimePicker format="HH:mm:ss" />
+    </Form.Item>
+    <Form.Item
+      name="price"
+      label="Giá Khóa Học"
+      rules={[{ required: true, message: 'Vui lòng nhập giá khóa học!' }]}
+    >
+      <Input type="number" />
+    </Form.Item>
+    <Form.Item
+      name="level"
+      label="Cấp Độ"
+      rules={[{ required: true, message: 'Vui lòng chọn cấp độ!' }]}
+    >
+      <Select placeholder="Chọn cấp độ">
+        <Option value="beginner">Beginner</Option>
+        <Option value="intermediate">Intermediate</Option>
+        <Option value="advanced">Advanced</Option>
+      </Select>
+    </Form.Item>
+    <Form.Item
+      name="image"
+      label="Hình Ảnh"
+      valuePropName="fileList"
+      getValueFromEvent={(e) => e?.fileList}
+    >
+      <Upload
+        listType="picture"
+        beforeUpload={() => false}
+        onChange={handleImageChange}
+        maxCount={1}
+      >
+        <Button icon={<UploadOutlined />}>Chọn Ảnh</Button>
+      </Upload>
+    </Form.Item>
     <Form.Item>
       <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
         Xác Nhận
