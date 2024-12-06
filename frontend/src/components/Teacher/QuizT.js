@@ -1,13 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Modal, Form, Input, Select, message, TimePicker } from 'antd';
 import axios from 'axios';
-
+import QuestionFormModal from "./QuestionFormModal";
+import QuizCard from './QuizCard';
+import './QuizCard.css';
 const { Option } = Select;
 
 const Quiz = () => {
   const [quizModalVisible, setQuizModalVisible] = useState(false);
   const [courses, setCourses] = useState([]);  // Store courses data
   const [quizForm] = Form.useForm();
+
+
+  const [isModalVisible, setIsModalVisible] = useState(false);
+
+  const showModal = () => setIsModalVisible(true);
+  const closeModal = () => setIsModalVisible(false);
+
+  const quizzes = [
+    {
+      id: 1,
+      name: 'Math Quiz',
+      course_id: 1,
+      image: 'https://example.com/math-quiz.jpg',
+      duration: 30,  // Thời gian quiz tính bằng phút
+      quiz_time: '2024-12-06T09:00:00Z',
+    },
+    {
+      id: 2,
+      name: 'Science Quiz',
+      course_id: 2,
+      image: 'https://example.com/science-quiz.jpg',
+      duration: 45,
+      quiz_time: '2024-12-07T10:00:00Z',
+    },
+  ];
 
   // Fetch courses from API
   useEffect(() => {
@@ -80,13 +107,10 @@ const Quiz = () => {
         Tạo Bộ Câu Hỏi
       </Button>
 
-      <Button type="primary" style={{ margin: '0 8px' }}>
-        Tạo Câu Hỏi Trong Bộ
+      <Button type="primary" style={{ margin: '0 8px' }} onClick={showModal}>
+        Tạo Câu Hỏi và Câu Trả Lời
       </Button>
-      <Button type="primary" style={{ margin: '0 8px' }}>
-        Tạo Câu Trả Lời Trong Bộ
-      </Button>
-
+     
       {/* Quiz Creation Modal */}
       <Modal
         title="Tạo Bộ Câu Hỏi"
@@ -133,6 +157,13 @@ const Quiz = () => {
           </Form.Item>
         </Form>
       </Modal>
+
+      <QuestionFormModal isVisible={isModalVisible} onClose={closeModal} />
+    <div className="quiz-list">
+      {quizzes.map((quiz) => (
+        <QuizCard key={quiz.id} quiz={quiz} />
+      ))}
+    </div>
     </div>
   );
 };

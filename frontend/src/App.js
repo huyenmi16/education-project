@@ -13,6 +13,7 @@ import HistoryReport from './components/HistoryReport.js';
 import Profile from './components/Profile.js';
 import TeacherManage from './components/Teacher/TeacherManage.js'
 import DetailCourseT from './components/Teacher/DetailCourseT.js';
+import QuizDetail from './components/Teacher/QuizDetail.js';
 function App() {
   return (
     <Router>
@@ -29,6 +30,7 @@ function App() {
           <Route path="/quiz/:id" element={<DetailQuiz />} /> 
           <Route path="/teacher-manager" element={<TeacherManage />} /> 
           <Route path="/courses/:id" element={<DetailCourseT />} /> 
+          <Route path="/detail-quiz" element={<QuizDetail />} /> 
         </Routes>
       </div>
     </Router>

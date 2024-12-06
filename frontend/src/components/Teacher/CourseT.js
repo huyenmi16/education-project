@@ -49,6 +49,11 @@ const Course = () => {
 
     fetchCourses();
   }, []);
+  useEffect(() => {
+    // Giả sử có thể thêm các tác vụ khác trong useEffect, ví dụ gọi API
+    console.log('Đã xóa course_id:', courses);
+  }, [courses]);  // Chạy lại mỗi khi `items` thay đổi
+
 
   const handleStartNowClick = (id) => {
     navigate(`/courses/${id}`); 
@@ -60,34 +65,37 @@ const Course = () => {
     editCourseForm.setFieldsValue({
       courseName: course.title,
       description: course.description,
-      duration: course.duration ? Number(course.duration) : '',
+      duration: course.duration ? moment(course.duration, 'HH:mm:ss') : '',
       price: course.price,
       level: course.level,
+      image: course.image
     });
+
   };
   
 
 
+
   const handleCourseCreate = async (values) => {
     const token = localStorage.getItem('accessToken'); // Get token from localStorage
-
+  
     if (!token) {
       message.error('Bạn chưa đăng nhập!');
       return;
     }
-
+  
     const formData = new FormData();
     formData.append('title', values.courseName);
     formData.append('description', values.description);
     formData.append('duration', values.duration.format('HH:mm:ss')); // Convert to HH:mm:ss
     formData.append('price', values.price);
     formData.append('level', values.level);
-
+  
     // Check if there is an image and add it to the formData
     if (imageFile) {
       formData.append('image', imageFile); // Attach the image file directly
     }
-
+  
     try {
       const response = await axios.post(
         'http://127.0.0.1:8000/api/add-courses/',  // API endpoint Django
@@ -99,7 +107,7 @@ const Course = () => {
           },
         }
       );
-
+  
       message.success(response.data.message || 'Tạo khóa học thành công!');
       setCourseModalVisible(false); // Close modal
       courseForm.resetFields(); // Reset form fields
@@ -120,15 +128,24 @@ const Course = () => {
     }
   
     
-    const formattedDuration = moment(values.duration, 'HH:mm:ss').format('HH:mm:ss');
+    let formattedDuration = moment(values.duration, 'HH:mm:ss').format('HH:mm:ss');
+    if (!values.duration) {
+      const duration= editCourseForm.getFieldValue('duration')
+      formattedDuration = moment(duration, 'HH:mm:ss').format('HH:mm:ss');
+    }
+    console.log('duration: ', editCourseForm.getFieldValue('duration'))
+    console.log('formattedDuration: ', formattedDuration)
+    console.log('values.duration: ', values.duration)
     const formData = new FormData();
     formData.append('title', values.courseName);
     formData.append('description', values.description);
     formData.append('duration', formattedDuration);
     formData.append('price', values.price);
     formData.append('level', values.level);
+    formData.append('image', values.image || '');
   
     if (imageFile) {
+      formData.delete('image');
       formData.append('image', imageFile); // Nếu có ảnh mới
     }
   
@@ -147,6 +164,12 @@ const Course = () => {
       message.success(response.data.message || 'Cập nhật khóa học thành công!');
       setEditCourseModalVisible(false);
       setImageFile(null);
+      const responses = await axios.get('http://127.0.0.1:8000/api/all-courses/', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setCourses(responses.data);
       // Reload danh sách khóa học
     } catch (error) {
       const errorMessage =
@@ -173,6 +196,8 @@ const Course = () => {
       );
   
       message.success(response.data.message || 'Xóa khóa học thành công!');
+      setCourses((prevCourses) => prevCourses.filter(course => course.id !== courseId));
+
       // Reload danh sách khóa học
     } catch (error) {
       const errorMessage =
@@ -181,12 +206,15 @@ const Course = () => {
     }
   };
   
-  // Handle image file change
-  const handleImageChange = (info) => {
-    if (info.file.status === 'removed') {
-      setImageFile(null);
-    } else if (info.file.originFileObj) {
-      setImageFile(info.file.originFileObj); // Save image after selection
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0]; // Get the first selected file
+  
+    if (file && file.type.startsWith('image/')) { // Ensure the file is an image
+      setImageFile(file); // Save the selected image file
+    } else {
+      setImageFile(null); // Clear the image if it's not an image file
+      message.error('Vui lòng chọn tệp hình ảnh hợp lệ!');
     }
   };
 
@@ -318,7 +346,7 @@ const Course = () => {
           <Col xs={24} sm={12} md={8} lg={6} key={course.id}>
             <Card
               hoverable
-              cover={<img alt={course.title} src={course.imageUrl} />}
+              cover={<img alt={course.title} src={course.image ? `http://127.0.0.1:8000${course.image}` : 'https://via.placeholder.com/300x150'} />}
               style={{ width: "100%" }}
             >
               <Card.Meta
@@ -355,7 +383,7 @@ const Course = () => {
       </Row>
     </div>
 
-      <Modal
+    <Modal
         title="Tạo Khóa Học"
         visible={courseModalVisible}
         onCancel={() => setCourseModalVisible(false)}
@@ -398,22 +426,17 @@ const Course = () => {
             </Select>
           </Form.Item>
 
-          {/* Image upload */}
+
           <Form.Item
             name="image"
             label="Hình Ảnh"
-            valuePropName="fileList"
-            getValueFromEvent={(e) => e?.fileList}
             rules={[{ required: true, message: 'Vui lòng chọn hình ảnh!' }]}
           >
-            <Upload
-              listType="picture"
-              beforeUpload={() => false} // Prevent auto-upload
-              onChange={handleImageChange}
-              maxCount={1} // Only allow one image
-            >
-              <Button icon={<UploadOutlined />}>Chọn Ảnh</Button>
-            </Upload>
+            <Input
+              type="file"
+              accept="image/*" // Restrict to image files only
+              onChange={handleImageChange} // Handle file selection
+            />
           </Form.Item>
 
           <Form.Item>
@@ -422,11 +445,11 @@ const Course = () => {
             </Button>
           </Form.Item>
         </Form>
-      </Modal>
+    </Modal>
 
       {/* modal them chapter */}
 
-      <Modal
+    <Modal
         title="Tạo Chương"
         visible={chapterModalVisible}
         onCancel={() => setChapterModalVisible(false)}
@@ -459,11 +482,11 @@ const Course = () => {
             </Button>
           </Form.Item>
         </Form>
-      </Modal>
+    </Modal>
 
       {/* Modal tạo lesson */}
 
-      <Modal
+    <Modal
   title="Tạo Bài Học"
   visible={lessonModalVisible}
   onCancel={() => setLessonModalVisible(false)}
@@ -546,73 +569,78 @@ const Course = () => {
       </Button>
     </Form.Item>
   </Form>
-     </Modal>
+    </Modal>
 
 
-     <Modal
-  title="Chỉnh Sửa Khóa Học"
-  visible={editCourseModalVisible}
-  onCancel={() => setEditCourseModalVisible(false)}
-  footer={null}
->
-  <Form form={editCourseForm} onFinish={handleEditCourse}>
-    <Form.Item
-      name="courseName"
-      label="Tên Khóa Học"
-      rules={[{ required: true, message: 'Vui lòng nhập tên khóa học!' }]}
-    >
-      <Input />
-    </Form.Item>
-    <Form.Item name="description" label="Mô Tả">
-      <Input.TextArea />
-    </Form.Item>
-    <Form.Item
-      name="duration"
-      label="Thời Lượng"
-      rules={[{ required: true, message: 'Vui lòng chọn thời lượng!' }]}
-    >
-      <TimePicker format="HH:mm:ss" />
-    </Form.Item>
-    <Form.Item
-      name="price"
-      label="Giá Khóa Học"
-      rules={[{ required: true, message: 'Vui lòng nhập giá khóa học!' }]}
-    >
-      <Input type="number" />
-    </Form.Item>
-    <Form.Item
-      name="level"
-      label="Cấp Độ"
-      rules={[{ required: true, message: 'Vui lòng chọn cấp độ!' }]}
-    >
-      <Select placeholder="Chọn cấp độ">
-        <Option value="beginner">Beginner</Option>
-        <Option value="intermediate">Intermediate</Option>
-        <Option value="advanced">Advanced</Option>
-      </Select>
-    </Form.Item>
-    <Form.Item
-      name="image"
-      label="Hình Ảnh"
-      valuePropName="fileList"
-      getValueFromEvent={(e) => e?.fileList}
-    >
-      <Upload
-        listType="picture"
-        beforeUpload={() => false}
-        onChange={handleImageChange}
-        maxCount={1}
+    <Modal
+        title="Chỉnh Sửa Khóa Học"
+        visible={editCourseModalVisible}
+        onCancel={() => setEditCourseModalVisible(false)}
+        footer={null}
       >
-        <Button icon={<UploadOutlined />}>Chọn Ảnh</Button>
-      </Upload>
-    </Form.Item>
-    <Form.Item>
-      <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
-        Xác Nhận
-      </Button>
-    </Form.Item>
-  </Form>
-</Modal>
+        <Form form={editCourseForm} onFinish={handleEditCourse}>
+          <Form.Item
+            name="courseName"
+            label="Tên Khóa Học"
+            rules={[{ required: true, message: 'Vui lòng nhập tên khóa học!' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item name="description" label="Mô Tả">
+            <Input.TextArea />
+          </Form.Item>
+          <Form.Item
+            name="duration"
+            label="Thời Lượng"
+            rules={[{ required: true, message: 'Vui lòng chọn thời lượng!' }]}
+          >
+            <TimePicker format="HH:mm:ss" />
+          </Form.Item>
+          <Form.Item
+            name="price"
+            label="Giá Khóa Học"
+            rules={[{ required: true, message: 'Vui lòng nhập giá khóa học!' }]}
+          >
+            <Input type="number" />
+          </Form.Item>
+          <Form.Item
+            name="level"
+            label="Cấp Độ"
+            rules={[{ required: true, message: 'Vui lòng chọn cấp độ!' }]}
+          >
+            <Select placeholder="Chọn cấp độ">
+              <Option value="beginner">Beginner</Option>
+              <Option value="intermediate">Intermediate</Option>
+              <Option value="advanced">Advanced</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item
+            name="image"
+            label="Hình Ảnh"
+            rules={[{ required: true, message: 'Vui lòng chọn hình ảnh!' }]}
+          >
+            <Input
+              type="file"
+              accept="image/*" // Restrict to image files only
+              onChange={handleImageChange} // Handle file selection
+            />
+            {editCourseForm.getFieldValue('image') && (
+    <div style={{ marginTop: 10 }}>
+      <img
+        src={`http://127.0.0.1:8000${editCourseForm.getFieldValue('image')}`}
+        alt="Preview"
+        style={{ width: '100%', maxWidth: 200, height: 'auto' }}
+      />
+    </div>
+  )}
+          </Form.Item>
+          <Form.Item>
+            <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
+              Xác Nhận
+            </Button>
+          </Form.Item>
+        </Form>
+    </Modal>
 
 
     </div>

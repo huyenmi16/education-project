@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import QuizListView, QuestionCreateView,ListQuizView,DetailQuiz,SubmitQuiz,CheckSubmit,ManageQuizView
+from .views import QuizListView, QuestionCreateView,ListQuizView,DetailQuiz,SubmitQuiz,CheckSubmit,ManageQuizView, ManageQuestionView,ManageOptionView
 
 urlpatterns = [
     path('questions/', QuizListView.as_view(), name='questions-by-course'),
@@ -14,9 +14,9 @@ urlpatterns = [
     path('quiz/<int:course_id>/', ManageQuizView.as_view(), name='manage_quiz'),  # For creating a new quiz
 
     path('all-quiz/<int:course_id>/', ManageQuizView.as_view(), name='manage_quiz'),
-    path('quiz/<int:quiz_id>/questions/', ManageQuizView.as_view(), name='add_question'),
+    path('quiz/<int:quiz_id>/questions/', ManageQuestionView.as_view(), name='add_question'),
     # For adding questions to a quiz
-    path('question/<int:question_id>/options/', ManageQuizView.as_view(), name='add_option'),
+    path('question/<int:question_id>/options/', ManageOptionView.as_view(), name='add_option'),
     # For adding options to a question
 
 ]

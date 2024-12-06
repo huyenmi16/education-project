@@ -237,12 +237,6 @@ class  ManageQuizView(APIView):
             return Response({'error': 'Only lecturers can view quizzes for their courses'},
                             status=status.HTTP_403_FORBIDDEN)
 
-        # # Check if the course belongs to the user
-        # try:
-        #     course = Course.objects.get(id=course_id, created_by=user_id)
-        # except Course.DoesNotExist:
-        #     return Response({'error': 'Course not found or you do not have permission to view quizzes'},
-        #                     status=status.HTTP_404_NOT_FOUND)
 
         # Fetch all quizzes for the course
         quizzes = Quiz.objects.filter(course_id=course_id)
@@ -310,18 +304,26 @@ class  ManageQuizView(APIView):
         quiz.delete()
         return Response({'message': 'Quiz đã được xóa thành công.'}, status=status.HTTP_204_NO_CONTENT)
 
+class ManageQuestionView(APIView):
 
-
-    def post_question(self, request, quiz_id, format=None):
+    def post(self, request, quiz_id, format=None):
         """Thêm câu hỏi mới cho quiz."""
         token = request.headers.get('Authorization')
         if not token:
             return Response({'error': 'Yêu cầu token xác thực'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        user_data = self.get_user_info(token)
-        if not user_data:
-            return Response({'error': 'Xác thực người dùng thất bại'}, status=status.HTTP_401_UNAUTHORIZED)
+        # Gọi API để lấy thông tin người dùng từ token
+        profile_url = "http://127.0.0.1:4000/api/profile/"
+        headers = {'Authorization': token}
 
+        try:
+            response = requests.get(profile_url, headers=headers)
+            response.raise_for_status()  # Gây ra lỗi nếu status code không phải 2xx
+        except requests.exceptions.RequestException as e:
+            return Response({'error': 'Xác thực người dùng thất bại', 'details': str(e)},
+                            status=status.HTTP_401_UNAUTHORIZED)
+
+        user_data = response.json()
         user_id = user_data.get('id')
         role = user_data.get('role')
 
@@ -342,16 +344,26 @@ class  ManageQuizView(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def post_option(self, request, question_id, format=None):
+class ManageOptionView(APIView):
+
+    def post(self, request, question_id, format=None):
         """Thêm đáp án mới cho câu hỏi."""
         token = request.headers.get('Authorization')
         if not token:
             return Response({'error': 'Yêu cầu token xác thực'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        user_data = self.get_user_info(token)
-        if not user_data:
-            return Response({'error': 'Xác thực người dùng thất bại'}, status=status.HTTP_401_UNAUTHORIZED)
+        # Gọi API để lấy thông tin người dùng từ token
+        profile_url = "http://127.0.0.1:4000/api/profile/"
+        headers = {'Authorization': token}
 
+        try:
+            response = requests.get(profile_url, headers=headers)
+            response.raise_for_status()  # Gây ra lỗi nếu status code không phải 2xx
+        except requests.exceptions.RequestException as e:
+            return Response({'error': 'Xác thực người dùng thất bại', 'details': str(e)},
+                            status=status.HTTP_401_UNAUTHORIZED)
+
+        user_data = response.json()
         user_id = user_data.get('id')
         role = user_data.get('role')
 

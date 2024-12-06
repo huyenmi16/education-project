@@ -19,9 +19,15 @@ from django.core.mail import send_mail
 from django.conf import settings
 
 
+# class CourseListView(APIView):
+#     def get(self, request, format=None):
+#         courses = Course.objects.all()
+#         serializer = CourseSerializer(courses, many=True)
+#         return Response(serializer.data)
 class CourseListView(APIView):
     def get(self, request, format=None):
-        courses = Course.objects.all()
+        # Lọc các khóa học có is_approved = True
+        courses = Course.objects.filter(is_approved=True)
         serializer = CourseSerializer(courses, many=True)
         return Response(serializer.data)
 

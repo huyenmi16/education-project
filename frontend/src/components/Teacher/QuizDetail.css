@@ -1,0 +1,23 @@
+.quiz-detail-container {
+  padding: 1rem;
+}
+
+.quiz-info {
+  margin-bottom: 2rem;
+}
+
+.questions-list h2 {
+  margin-bottom: 1rem;
+}
+
+.question-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #ccc;
+}
+
+.question-item .action-btn {
+  margin-left: 1rem;
+}

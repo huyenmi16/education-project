@@ -3,9 +3,10 @@ import { Layout, Card, Form, Input, Button, message, Upload } from 'antd';
 import { EditOutlined, UploadOutlined } from '@ant-design/icons';
 import axios from 'axios';
 
-const { Content, Footer } = Layout;
+const { Content } = Layout;
 
 const Teacher = () => {
+
     const [profileData, setProfileData] = useState({
         username: '',
         email: '',
@@ -218,9 +219,7 @@ const Teacher = () => {
                 )}
             </Content>
 
-            <Footer style={{ textAlign: 'center' }}>
-                Education ©{new Date().getFullYear()} Created by Ngoc Huyen
-            </Footer>
+            
         </Layout>
     );
 };

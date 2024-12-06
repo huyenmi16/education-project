@@ -1,0 +1,73 @@
+.quiz-list {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: nowrap; /* Không cho các phần tử chuyển xuống dòng mới */
+    gap: 20px; /* Khoảng cách giữa các quiz card */
+    overflow-x: auto; /* Cho phép cuộn ngang nếu các quiz card quá rộng */
+  }
+
+  
+
+  .quiz-card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    max-width: 300px;
+    width: 100%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+  }
+  
+  .quiz-card:hover {
+    transform: scale(1.05);
+  }
+  
+  .quiz-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+  
+  .quiz-card-header h2 {
+    font-size: 18px;
+    margin: 0;
+  }
+  
+  .quiz-card-header img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+  
+  .quiz-card-info p {
+    margin: 5px 0;
+    font-size: 14px;
+    color: #555;
+  }
+  
+  .see-more-btn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 10px;
+  }
+  
+  .see-more-btn:hover {
+    background-color: #0056b3;
+  }
+  
+  .quiz-card-details {
+    margin-top: 15px;
+    font-size: 14px;
+    color: #333;
+    border-top: 1px solid #ddd;
+    padding-top: 10px;
+  }
+  
