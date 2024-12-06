@@ -198,11 +198,36 @@ class UserCourseReviewView(APIView):
 
     # Xử lý GET yêu cầu lấy danh sách đánh giá của khóa học
     def get(self, request, course_id, format=None):
+        token = request.headers.get('Authorization')
+        if not token:
+            return Response({'error': 'Yêu cầu token xác thực'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        profile_url = "http://127.0.0.1:4000/api/profile/"
+        headers = {'Authorization': token}
+
+        try:
+            response = requests.get(profile_url, headers=headers)
+            response.raise_for_status()  # Gây ra lỗi nếu status code không tốt
+        except requests.exceptions.RequestException as e:
+            return Response({'error': 'Xác thực người dùng thất bại', 'details': str(e)},
+                            status=status.HTTP_401_UNAUTHORIZED)
+
+        # Lấy dữ liệu người dùng từ response
+        user_data = response.json()
+        user_id = user_data.get('id')
+
+        if not user_id:
+            return Response({'error': 'Dữ liệu người dùng không hợp lệ'}, status=status.HTTP_401_UNAUTHORIZED)
+
         # Lấy tất cả đánh giá của khóa học theo course_id
         reviews = CourseReview.objects.filter(course_id=course_id)
         # Serialize và trả về dữ liệu
         serializer = CourseReviewSerializer(reviews, many=True)
-        return Response(serializer.data)
+        response = Response(serializer.data)
+        for data in response.data:
+            if data['user_id'] == user_id:
+                data['current_user_review'] = True
+        return response
 
 
 class ManageCourseView(APIView):
