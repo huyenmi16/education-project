@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { List, Form, Input, Button, Rate, message, Card } from "antd";
 import axios from "axios";
-
+import CourseCard from "./CourseCard";
 const { TextArea } = Input;
 
 const CourseReviews = ({ courseId }) => {
@@ -9,16 +9,48 @@ const CourseReviews = ({ courseId }) => {
   const [newReview, setNewReview] = useState("");
   const [newRating, setNewRating] = useState(0); // Rating state
   const [loading, setLoading] = useState(false);
-  const [recommendedCourses, setRecommendedCourses] = useState([]); // New state for recommended courses
+  const [recommendedCourses, setRecommendedCourses] = useState([]); // Recommended courses state
 
+  const [currentUserRating, setCurrentUserRating] = useState(null); 
   // Fetch reviews
   useEffect(() => {
+    
     const fetchReviews = async () => {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        message.error("Bạn cần đăng nhập để xem đánh giá.");
+        return;
+      }
+
       try {
         const response = await axios.get(
-          `http://127.0.0.1:8000/api/course/${courseId}/review/`
+          `http://127.0.0.1:8000/api/course/${courseId}/review/`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`, // Add the token to the headers
+            },
+          }
         );
+
+        // Assuming `response.data` is an array of reviews
         setReviews(response.data);
+
+        // Find the current user's review by filtering the list
+        const currentUserReview = response.data.find(
+          (review) => review.current_user_review === true
+        );
+
+        if (currentUserReview) {
+          const userRating = currentUserReview.rating;
+          setCurrentUserRating(userRating); // Store the current user's rating
+          console.log("Current user rating:", userRating);
+          // fetchRecommendations()
+        } else {
+          console.log("Current user has no review.");
+          setCurrentUserRating(null); // Reset if no review
+        }
+        
+
       } catch (error) {
         console.error("Error fetching reviews:", error);
         message.error("Không thể tải đánh giá. Vui lòng thử lại!");
@@ -27,6 +59,13 @@ const CourseReviews = ({ courseId }) => {
 
     fetchReviews();
   }, [courseId]);
+
+  useEffect(() => {
+    // Khi currentUserRating thay đổi, gọi fetchRecommendations
+    if (currentUserRating !== null) {
+      fetchRecommendations(); // Gọi fetchRecommendations với currentUserRating
+    }
+  }, [currentUserRating]);
 
   // Handle review submission
   const handleReviewSubmit = async () => {
@@ -43,7 +82,6 @@ const CourseReviews = ({ courseId }) => {
 
     setLoading(true);
     try {
-      // Submit review
       const response = await axios.post(
         `http://127.0.0.1:8000/api/course/${courseId}/review/`,
         { rating: newRating, review: newReview }, // Send rating and review
@@ -54,26 +92,7 @@ const CourseReviews = ({ courseId }) => {
       setNewReview("");
       setNewRating(0); // Reset rating
       message.success("Gửi đánh giá thành công!");
-
-      // Fetch recommended courses
-      const userId = localStorage.getItem("userId"); // Assuming userId is stored in localStorage
-      const recommendationsResponse = await axios.post(
-        `http://127.0.0.1:8000/api/recommendation/`,
-        {
-          user_id: userId,
-          course_id: courseId,
-          rating: newRating
-
-          
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
-
-     
-
-      setRecommendedCourses(recommendationsResponse.data); // Set recommended courses data
+      fetchRecommendations()
     } catch (error) {
       console.error("Error submitting review:", error);
       message.error(
@@ -81,6 +100,43 @@ const CourseReviews = ({ courseId }) => {
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Fetch recommended courses
+  const fetchRecommendations = async () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      message.error("Bạn cần đăng nhập để xem khóa học đề xuất.");
+      return;
+    }
+
+    try {
+      let response;
+      if(newRating){
+         response = await axios.post(
+          `https://bce4-2001-ee0-1ab1-dc9a-1ec-1ea7-27e8-2fb2.ngrok-free.app/api/recommendation/`,
+          { course_id: courseId ,rating:newRating},
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
+      else {
+         response = await axios.post(
+          `https://bce4-2001-ee0-1ab1-dc9a-1ec-1ea7-27e8-2fb2.ngrok-free.app/api/recommendation/`,
+          { course_id: courseId ,rating:currentUserRating},
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
+
+
+      
+      setRecommendedCourses(response.data); // Update recommended courses
+      message.success("Tải khóa học đề xuất thành công!");
+    } catch (error) {
+      console.error("Error fetching recommendations:", error);
+      message.error(
+        error.response?.data?.error || "Không thể tải khóa học đề xuất. Vui lòng thử lại!"
+      );
     }
   };
 
@@ -95,7 +151,7 @@ const CourseReviews = ({ courseId }) => {
             <List.Item.Meta
               title={
                 <>
-                  <strong>Người dùng {item.name}</strong> {/* Displaying user ID */}
+                  <strong>Người dùng {item.name}</strong>
                   <Rate disabled defaultValue={item.rating} style={{ marginLeft: 8 }} />
                 </>
               }
@@ -130,7 +186,16 @@ const CourseReviews = ({ courseId }) => {
         </Form.Item>
       </Form>
 
-      {/* Section for recommended courses */}
+      {/* Section for fetching recommended courses */}
+      {/* <Button
+        type="primary"
+        onClick={fetchRecommendations}
+        style={{ marginTop: "16px" }}
+      >
+        Tải khóa học đề xuất
+      </Button> */}
+
+      {/* Section for displaying recommended courses */}
       {recommendedCourses.length > 0 && (
         <div style={{ marginTop: "24px" }}>
           <h3>Khóa học đề xuất</h3>
@@ -139,12 +204,23 @@ const CourseReviews = ({ courseId }) => {
             dataSource={recommendedCourses}
             renderItem={(course) => (
               <List.Item>
-                <Card
+                {/* <Card
                   hoverable
-                  cover={<img alt={course.name} src={course.image_url} />}
+                  cover={<img alt={course.title} src={course.image} />}
                 >
-                  <Card.Meta title={course.name} description={course.description} />
-                </Card>
+                  <Card.Meta title={course.title} description={course.description} />
+                </Card> */}
+
+
+                <CourseCard
+                    id={course.id}
+                    title={course.title}
+                    price={course.price}
+                    time={`Duration: ${course.duration}`}
+                    teacher={course.instructor}
+                    participants={`Level: ${course.level}`} // Using level to show as participants
+                    imageUrl={course.image ? `http://127.0.0.1:8000${course.image}` : 'https://via.placeholder.com/300x150'}
+                  />
               </List.Item>
             )}
           />
