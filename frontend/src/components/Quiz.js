@@ -1,9 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { Row, Col, Card, Typography, Button, Modal } from 'antd';
+import { Row, Col, Card, Typography, Button, Modal, Progress } from 'antd';
 import Question from './Question';
 import RightContent from './Content/RightContent';
+import {
+    CheckCircleOutlined,
+    CloseCircleOutlined,
+    QuestionCircleOutlined,
+    TrophyOutlined,
+    FileTextOutlined
+} from '@ant-design/icons';
 
 const { Title } = Typography;
 
@@ -37,7 +44,7 @@ const DetailQuiz = () => {
                 if (storedQuizDetails) {
                     setQuizDetails(JSON.parse(storedQuizDetails));
                 } else {
-                    const response = await axios.get(`http://127.0.0.1:5000/api/quiz/${id}/`);
+                    const response = await axios.get(`http://127.0.0.1:5000/api/quiz/detail/${id}/`);
                     const updateQuizDetails = response.data.map((question) => ({
                         ...question,
                         options: question.options.map((option) => ({
@@ -57,6 +64,7 @@ const DetailQuiz = () => {
         fetchQuizDetails();
     }, [id]);
 
+    const [score, setScore] = useState(0);
     const calculateResults = () => {
         if (!quizDetails) return;
 
@@ -81,6 +89,10 @@ const DetailQuiz = () => {
                 unansweredQuestions += 1;
             }
         });
+        // Tính điểm trên thang điểm 10
+        const calculatedScore = (correctAnswers / totalQuestions) * 10;
+        setScore(calculatedScore.toFixed(2)); // Làm tròn đến 2 chữ số thập phân
+
 
         setResults({
             totalQuestions,
@@ -88,7 +100,7 @@ const DetailQuiz = () => {
             incorrectAnswers,
             unansweredQuestions,
         });
-        statusQuiz()
+        statusQuiz(calculatedScore)
     };
 
     const handleNext = () => {
@@ -117,17 +129,20 @@ const DetailQuiz = () => {
         setIsModalVisible(false);
     };
 
-    const statusQuiz = async () => {
+    const statusQuiz = async (calculatedScore) => {
         if (!token) {
             console.error("Token không tồn tại");
             return;
         }
-    
+
         try {
-            const response = await axios.post(`http://127.0.0.1:5000/api/submit-quiz/${id}/`, {}, {
+            const response = await axios.post(`http://127.0.0.1:5000/api/submit-quiz/${id}/`, {
+                // score: parseFloat(score) // Gửi điểm dạng số
+                score: calculatedScore // Gửi điểm dạng số
+            }, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-    
+
             if (response.status === 200) {
                 console.log("Nộp bài thành công");
                 // Kiểm tra trạng thái sau khi nộp bài
@@ -139,18 +154,18 @@ const DetailQuiz = () => {
             console.error("Lỗi kiểm tra trạng thái hoàn thành:", error);
         }
     };
-    
+
     const checkSubmitStatus = async () => {
         if (!token) {
             console.error("Token không tồn tại");
             return;
         }
-    
+
         try {
             const response = await axios.get(`http://127.0.0.1:5000/api/check-submit/${id}/`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-    
+
             if (response.data.is_completed) {
                 console.log("Quiz đã hoàn thành:", response.data.is_completed);
                 setIsCompleted(true);
@@ -162,7 +177,7 @@ const DetailQuiz = () => {
             console.error("Lỗi kiểm tra trạng thái hoàn thành:", error);
         }
     };
-    
+
 
     const handleSecondModalCancel = () => {
         setIsSecondModalVisible(false);
@@ -171,12 +186,12 @@ const DetailQuiz = () => {
             navigate('/listquiz', { state: { isCompleted } });
         });
     };
-    
+
 
     const handleSecondModalVisible = async () => {
         calculateResults();
         setIsSecondModalVisible(true);
-       
+
     };
 
     return (
@@ -216,10 +231,10 @@ const DetailQuiz = () => {
                         <Card>
                             <div className="right-content">
                                 <RightContent
-                                  quizDetails={quizDetails}
-                                  countDownDuration={location?.state?.courseDuration}
-                                  onTimeUp={handleSecondModalVisible}
-                                  setIndex={setIndex}
+                                    quizDetails={quizDetails}
+                                    countDownDuration={location?.state?.courseDuration}
+                                    onTimeUp={handleSecondModalVisible}
+                                    setIndex={setIndex}
                                 />
                             </div>
                             <div>
@@ -243,16 +258,55 @@ const DetailQuiz = () => {
                 <p>Bạn có chắc chắn muốn nộp bài?</p>
             </Modal>
 
+
             <Modal
-                title="Quiz đã được nộp"
+                title={
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <FileTextOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
+                        <span>Kết quả bài làm</span>
+                    </div>
+                }
                 open={isSecondModalVisible}
-                footer={null}
-                onCancel={handleSecondModalCancel}
+                footer={[
+                    <Button key="back" onClick={handleSecondModalCancel}>
+                        Đóng
+                    </Button>
+                ]}
+                width={500}
             >
-                <p>Số câu hỏi: {results.totalQuestions}</p>
-                <p>Số câu trả lời đúng: {results.correctAnswers}</p>
-                <p>Số câu trả lời sai: {results.incorrectAnswers}</p>
-                <p>Số câu chưa trả lời: {results.unansweredQuestions}</p>
+                <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                    <TrophyOutlined style={{ fontSize: '48px', color: '#ffd700' }} />
+                    <Title level={2} style={{ margin: '16px 0' }}>
+                        {score} / 10 điểm
+                    </Title>
+                    <Progress
+                        percent={score * 10}
+                        status={score >= 5 ? "success" : "exception"}
+                        strokeWidth={10}
+                    />
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <FileTextOutlined style={{ color: '#8c8c8c' }} />
+                        <span>Tổng số câu hỏi: {results.totalQuestions}</span>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <CheckCircleOutlined style={{ color: '#52c41a' }} />
+                        <span>Số câu trả lời đúng: {results.correctAnswers}</span>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <CloseCircleOutlined style={{ color: '#ff4d4f' }} />
+                        <span>Số câu trả lời sai: {results.incorrectAnswers}</span>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <QuestionCircleOutlined style={{ color: '#faad14' }} />
+                        <span>Số câu chưa trả lời: {results.unansweredQuestions}</span>
+                    </div>
+                </div>
             </Modal>
         </div>
     );

@@ -34,5 +34,13 @@ class UserQuizCompletion(models.Model):
     quiz_id= models.ForeignKey(Quiz, on_delete=models.CASCADE)  # Bộ câu hỏi
     is_completed = models.BooleanField(default=False)  # Trạng thái hoàn thành
     completed_at = models.DateTimeField(null=True, blank=True)  # Thời gian hoàn thành (nếu có)
+    score = models.DecimalField(
+        max_digits=4,  # Tổng số chữ số tối đa (bao gồm cả phần thập phân)
+        decimal_places=2,  # Số chữ số thập phân
+        null=True,  # Cho phép giá trị null
+        blank=True,  # Cho phép để trống trong form
+        default=0.00  # Giá trị mặc định
+    )
+
 
     

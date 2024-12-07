@@ -7,6 +7,7 @@ from .serializers import QuestionSerializer, QuizSerializer, QuizCompletionSeria
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
+
 class QuestionCreateView(APIView):
     def post(self, request, format=None):
         serializer = QuestionSerializer(data=request.data)
@@ -22,22 +23,24 @@ class QuestionCreateView(APIView):
                 return Response({'error': 'Course not found'}, status=status.HTTP_404_NOT_FOUND)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class QuizListView(APIView):
     def get(self, request, format=None):
-        
+
         token = request.headers.get('Authorization')
 
         # Gọi endpoint của dịch vụ ngoài để lấy danh sách khóa học đã đăng ký
         register_course_url = "http://127.0.0.1:8000/api/list-register-course/"
         headers = {'Authorization': token}
-        
+
         try:
             response = requests.get(register_course_url, headers=headers)
             response.raise_for_status()
             registered_course_data = response.json()
         except requests.exceptions.RequestException as e:
-            return Response({'error': 'Không thể lấy danh sách khóa học đã đăng ký', 'details': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response({'error': 'Không thể lấy danh sách khóa học đã đăng ký', 'details': str(e)},
+                            status=status.HTTP_400_BAD_REQUEST)
+
         registered_course_ids = registered_course_data.get('registered_course_ids', [])
 
         if not registered_course_ids:
@@ -51,20 +54,21 @@ class QuizListView(APIView):
 
 class ListQuizView(APIView):
     def get(self, request, format=None):
-        
+
         token = request.headers.get('Authorization')
 
         # Gọi endpoint của dịch vụ ngoài để lấy danh sách khóa học đã đăng ký
         register_course_url = "http://127.0.0.1:8000/api/list-register-course/"
         headers = {'Authorization': token}
-        
+
         try:
             response = requests.get(register_course_url, headers=headers)
             response.raise_for_status()
             registered_course_data = response.json()
         except requests.exceptions.RequestException as e:
-            return Response({'error': 'Không thể lấy danh sách khóa học đã đăng ký', 'details': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response({'error': 'Không thể lấy danh sách khóa học đã đăng ký', 'details': str(e)},
+                            status=status.HTTP_400_BAD_REQUEST)
+
         registered_course_ids = registered_course_data.get('registered_course_ids', [])
 
         if not registered_course_ids:
@@ -73,6 +77,12 @@ class ListQuizView(APIView):
         # Lấy các câu hỏi từ các khóa học đã đăng ký
         quizs = Quiz.objects.filter(course_id__in=registered_course_ids)
         serializer = QuizSerializer(quizs, many=True)
+        user_id = get_user_id_from_token(request)
+        for data in serializer.data:
+            quiz_complete = UserQuizCompletion.objects.filter(user_id=user_id, quiz_id=data['id']).first()
+            if quiz_complete:
+                data['is_completed'] = quiz_complete.is_completed
+                data['score'] = quiz_complete.score
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -89,8 +99,31 @@ class DetailQuiz(APIView):
 
         # Return the serialized data
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
 
+
+def get_user_id_from_token(request):
+    token = request.headers.get('Authorization')
+    if not token:
+        return Response({'error': 'Yêu cầu token xác thực'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    # Gọi API để lấy thông tin người dùng từ token
+    profile_url = "http://127.0.0.1:4000/api/profile/"
+    headers = {'Authorization': token}
+
+    try:
+        response = requests.get(profile_url, headers=headers)
+        response.raise_for_status()  # Gây ra lỗi nếu status code không phải 2xx
+    except requests.exceptions.RequestException as e:
+        return Response({'error': 'Xác thực người dùng thất bại', 'details': str(e)},
+                        status=status.HTTP_401_UNAUTHORIZED)
+
+    # Lấy dữ liệu người dùng từ response
+    user_data = response.json()
+    user_id = user_data.get('id')
+
+    if not user_id:
+        return Response({'error': 'Dữ liệu người dùng không hợp lệ'}, status=status.HTTP_401_UNAUTHORIZED)
+    return user_id
 
 
 class SubmitQuiz(APIView):
@@ -125,9 +158,11 @@ class SubmitQuiz(APIView):
             return Response({'error': 'Quiz không tồn tại'}, status=status.HTTP_404_NOT_FOUND)
 
         # Kiểm tra xem người dùng đã hoàn thành quiz chưa
+        score = request.data['score']
         user_quiz_completion, created = UserQuizCompletion.objects.get_or_create(
             user_id=user_id,
             quiz_id=quiz,
+            score=score,
             defaults={
                 'is_completed': True,
                 'completed_at': timezone.now()
@@ -158,7 +193,8 @@ class CheckSubmit(APIView):
             response = requests.get(profile_url, headers=headers)
             response.raise_for_status()  # Gây ra lỗi nếu status code không phải 2xx
         except requests.exceptions.RequestException as e:
-            return Response({'error': 'Xác thực người dùng thất bại', 'details': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'error': 'Xác thực người dùng thất bại', 'details': str(e)},
+                            status=status.HTTP_401_UNAUTHORIZED)
 
         # Lấy dữ liệu người dùng từ response
         user_data = response.json()
@@ -173,12 +209,11 @@ class CheckSubmit(APIView):
 
             return Response({"is_completed": is_completed}, status=status.HTTP_200_OK)
         except Exception as e:
-            return Response({"error": "Đã xảy ra lỗi khi kiểm tra quiz", "details": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Đã xảy ra lỗi khi kiểm tra quiz", "details": str(e)},
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
-
-
-class  ManageQuizView(APIView):
+class ManageQuizView(APIView):
     def get_user_info(self, token):
         """Helper method to fetch user information from profile API."""
         profile_url = "http://127.0.0.1:4000/api/profile/"
@@ -216,7 +251,8 @@ class  ManageQuizView(APIView):
         serializer = QuizSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(course_id=course_id)
-            return Response({'message': 'Quiz được thêm thành công.', 'data': serializer.data}, status=status.HTTP_201_CREATED)
+            return Response({'message': 'Quiz được thêm thành công.', 'data': serializer.data},
+                            status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -236,7 +272,6 @@ class  ManageQuizView(APIView):
         if role != "lecturer":
             return Response({'error': 'Only lecturers can view quizzes for their courses'},
                             status=status.HTTP_403_FORBIDDEN)
-
 
         # Fetch all quizzes for the course
         quizzes = Quiz.objects.filter(course_id=course_id)
@@ -272,7 +307,8 @@ class  ManageQuizView(APIView):
         serializer = QuizSerializer(quiz, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response({'message': 'Quiz được cập nhật thành công.', 'data': serializer.data}, status=status.HTTP_200_OK)
+            return Response({'message': 'Quiz được cập nhật thành công.', 'data': serializer.data},
+                            status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -303,6 +339,7 @@ class  ManageQuizView(APIView):
         # Xóa quiz
         quiz.delete()
         return Response({'message': 'Quiz đã được xóa thành công.'}, status=status.HTTP_204_NO_CONTENT)
+
 
 class ManageQuestionView(APIView):
 
@@ -340,9 +377,11 @@ class ManageQuestionView(APIView):
         serializer = QuestionSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(quiz=quiz)
-            return Response({'message': 'Câu hỏi được thêm thành công.', 'data': serializer.data}, status=status.HTTP_201_CREATED)
+            return Response({'message': 'Câu hỏi được thêm thành công.', 'data': serializer.data},
+                            status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class ManageOptionView(APIView):
 
@@ -380,6 +419,7 @@ class ManageOptionView(APIView):
         serializer = OptionSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(question=question)
-            return Response({'message': 'Đáp án được thêm thành công.', 'data': serializer.data}, status=status.HTTP_201_CREATED)
+            return Response({'message': 'Đáp án được thêm thành công.', 'data': serializer.data},
+                            status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
