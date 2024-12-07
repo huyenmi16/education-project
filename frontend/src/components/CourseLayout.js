@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Layout, Row, Col, Pagination } from 'antd';
-import Sidebar from './Sidebar'; 
+import Sidebar from './Sidebar';
 import Navbar from './NavBar';
 import CourseCard from './CourseCard'; // Import the CourseCard component
 import FilterButton from './FilterButton';
 import './CourseLayout.css';
+import ChatBot from './ChatBot';
 
 const { Content, Footer } = Layout;
 
@@ -17,9 +18,10 @@ const CourseLayout = () => {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/api/courses/');
+        const token = localStorage.getItem("accessToken");
+        const response = await fetch('http://127.0.0.1:8000/api/courses/', { headers: { Authorization: `Bearer ${token}` } });
         const data = await response.json();
-       
+
         setCourses(data);
       } catch (error) {
         console.error('Error fetching courses:', error);
@@ -41,16 +43,16 @@ const CourseLayout = () => {
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Sidebar style={{ position: 'fixed', height: '100vh' }} /> 
+      <Sidebar style={{ position: 'fixed', height: '100vh' }} />
 
-      <Layout> 
+      <Layout>
         <Navbar style={{ position: 'fixed', width: '100%', zIndex: 1 }} />
-        
+
         <Content className="content-course-layout">
           <div className="content-card-parent">
             <Row className="filter-courses">
               <Col>
-                <FilterButton /> 
+                <FilterButton />
               </Col>
             </Row>
             <Row gutter={[16, 16]}>
@@ -64,6 +66,7 @@ const CourseLayout = () => {
                     teacher={course.instructor}
                     participants={`Level: ${course.level}`} // Using level to show as participants
                     imageUrl={course.image ? `http://127.0.0.1:8000${course.image}` : 'https://via.placeholder.com/300x150'}
+                    is_registered={course.is_registered}
                   />
                 </Col>
               ))}
@@ -83,6 +86,7 @@ const CourseLayout = () => {
           Education ©{new Date().getFullYear()} Created by Ngoc Huyen
         </Footer>
       </Layout>
+      <ChatBot />
     </Layout>
   );
 };

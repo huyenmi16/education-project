@@ -11,10 +11,10 @@ const CourseReviews = ({ courseId }) => {
   const [loading, setLoading] = useState(false);
   const [recommendedCourses, setRecommendedCourses] = useState([]); // Recommended courses state
 
-  const [currentUserRating, setCurrentUserRating] = useState(null); 
+  const [currentUserRating, setCurrentUserRating] = useState(null);
   // Fetch reviews
   useEffect(() => {
-    
+
     const fetchReviews = async () => {
       const token = localStorage.getItem("accessToken");
       if (!token) {
@@ -49,7 +49,7 @@ const CourseReviews = ({ courseId }) => {
           console.log("Current user has no review.");
           setCurrentUserRating(null); // Reset if no review
         }
-        
+
 
       } catch (error) {
         console.error("Error fetching reviews:", error);
@@ -113,23 +113,23 @@ const CourseReviews = ({ courseId }) => {
 
     try {
       let response;
-      if(newRating){
-         response = await axios.post(
-          `https://bce4-2001-ee0-1ab1-dc9a-1ec-1ea7-27e8-2fb2.ngrok-free.app/api/recommendation/`,
-          { course_id: courseId ,rating:newRating},
+      if (newRating) {
+        response = await axios.post(
+          `http://localhost:8000/api/recommendation/`,
+          { course_id: courseId, rating: newRating },
           { headers: { Authorization: `Bearer ${token}` } }
         );
       }
       else {
-         response = await axios.post(
-          `https://bce4-2001-ee0-1ab1-dc9a-1ec-1ea7-27e8-2fb2.ngrok-free.app/api/recommendation/`,
-          { course_id: courseId ,rating:currentUserRating},
+        response = await axios.post(
+          `http://localhost:8000/api/recommendation/`,
+          { course_id: courseId, rating: currentUserRating },
           { headers: { Authorization: `Bearer ${token}` } }
         );
       }
 
 
-      
+
       setRecommendedCourses(response.data); // Update recommended courses
       message.success("Tải khóa học đề xuất thành công!");
     } catch (error) {
@@ -213,14 +213,14 @@ const CourseReviews = ({ courseId }) => {
 
 
                 <CourseCard
-                    id={course.id}
-                    title={course.title}
-                    price={course.price}
-                    time={`Duration: ${course.duration}`}
-                    teacher={course.instructor}
-                    participants={`Level: ${course.level}`} // Using level to show as participants
-                    imageUrl={course.image ? `http://127.0.0.1:8000${course.image}` : 'https://via.placeholder.com/300x150'}
-                  />
+                  id={course.id}
+                  title={course.title}
+                  price={course.price}
+                  time={`Duration: ${course.duration}`}
+                  teacher={course.instructor}
+                  participants={`Level: ${course.level}`} // Using level to show as participants
+                  imageUrl={course.image ? `http://127.0.0.1:8000${course.image}` : 'https://via.placeholder.com/300x150'}
+                />
               </List.Item>
             )}
           />

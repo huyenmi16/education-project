@@ -4,6 +4,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 import pickle
 from flask import Flask, render_template, request
 import os
+from flask_cors import CORS
 
 base_path = os.path.dirname(os.path.abspath(__file__))
 
@@ -15,6 +16,13 @@ le = pickle.load(open(os.path.join(base_path, 'Version3/Colab/decode_label.pkl')
 
 # app = Flask(__name__)  # khoi tao flask
 app = Flask(__name__, template_folder="Version3/templates", static_folder="Version3/static")
+CORS(app, resources={
+    r"/*": {
+        "origins": "*",
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+})
 
 
 
@@ -73,7 +81,7 @@ def prediction(input):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=5005)
 
 # stopword không mang ý nghĩa đặc biệt trong việc hiểu nghĩa của văn bản
 # việc loại bỏ stopwords có thể giúp giảm kích thước của dữ liệu và tăng tốc quá trình xử lý

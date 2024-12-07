@@ -26,9 +26,30 @@ from django.conf import settings
 #         return Response(serializer.data)
 class CourseListView(APIView):
     def get(self, request, format=None):
+        token = request.headers.get('Authorization')
+        if not token:
+            return Response({'error': 'Yêu cầu token xác thực'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Gọi dịch vụ người dùng để lấy dữ liệu profile
+        profile_url = "http://127.0.0.1:4000/api/profile/"
+        headers = {'Authorization': token}
+
+        try:
+            response = requests.get(profile_url, headers=headers)
+            response.raise_for_status()  # Gây ra lỗi nếu status code không tốt
+        except requests.exceptions.RequestException as e:
+            return Response({'error': 'Xác thực người dùng thất bại', 'details': str(e)},
+                            status=status.HTTP_401_UNAUTHORIZED)
+
+        # Lấy dữ liệu người dùng từ response
+        user_data = response.json()
+        user_id = user_data.get('id')
         # Lọc các khóa học có is_approved = True
         courses = Course.objects.filter(is_approved=True)
         serializer = CourseSerializer(courses, many=True)
+        for data in serializer.data:
+            is_registered = CourseRegistration.objects.filter(user_id=user_id, course_id=data['id']).exists()
+            data['is_registered'] = is_registered
         return Response(serializer.data)
 
 
