@@ -1,41 +1,59 @@
-import React, { useState, useEffect } from 'react';
-import { Button, Modal, Form, Input, Select, message, TimePicker } from 'antd';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Button, Modal, Form, Input, Select, message, TimePicker, Pagination } from 'antd';
 import axios from 'axios';
 import QuestionFormModal from "./QuestionFormModal";
 import QuizCard from './QuizCard';
 import './QuizCard.css';
+
 const { Option } = Select;
 
 const Quiz = () => {
   const [quizModalVisible, setQuizModalVisible] = useState(false);
-  const [courses, setCourses] = useState([]);  // Store courses data
+  const [courses, setCourses] = useState([]);
   const [quizForm] = Form.useForm();
   const [selectedImage, setSelectedImage] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const showModal = () => setIsModalVisible(true);
-  const closeModal = () => setIsModalVisible(false);
+  const [quizzes, setQuizzes] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const quizzesPerPage = 4;
 
-  const quizzes = [
-    {
-      id: 1,
-      name: 'Math Quiz',
-      course_id: 1,
-      image: 'https://example.com/math-quiz.jpg',
-      duration: '00:30:00', // Định dạng HH:mm:ss để dùng trực tiếp với TimePicker
-      quiz_time: '2024-12-06T09:00', // Định dạng phù hợp với datetime-local
-    },
-    {
-      id: 2,
-      name: 'Science Quiz',
-      course_id: 2,
-      image: 'https://example.com/science-quiz.jpg',
-      duration: '00:45:00', // Định dạng HH:mm:ss
-      quiz_time: '2024-12-07T10:00', // Định dạng phù hợp với datetime-local
-    },
-  ];
-  
+  // Refactored fetchQuizzes with useCallback to prevent unnecessary re-renders
+  const fetchQuizzes = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        message.error('Bạn chưa đăng nhập!');
+        return;
+      }
 
-  // Fetch courses from API
+      const response = await axios.get('http://127.0.0.1:5000/api/get-all-quiz/', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const formattedQuizzes = response.data.map(quiz => ({
+        id: quiz.id,
+        name: quiz.name,
+        image: `http://127.0.0.1:5000${quiz.image}`,
+        duration: quiz.duration,
+        quiz_time: new Date(quiz.quiz_time).toLocaleString(),
+        course_name: quiz.course_name,
+      }));
+
+      setQuizzes(formattedQuizzes);
+    } catch (error) {
+      console.error('Error fetching quizzes:', error);
+      message.error('Không thể tải danh sách bài quiz');
+    }
+  }, []);
+
+  // Fetch quizzes on component mount and after quiz creation
+  useEffect(() => {
+    fetchQuizzes();
+  }, [fetchQuizzes]);
+
+  // Fetch courses
   useEffect(() => {
     const fetchCourses = async () => {
       const token = localStorage.getItem('accessToken');
@@ -50,7 +68,7 @@ const Quiz = () => {
             Authorization: `Bearer ${token}`,
           },
         });
-        setCourses(response.data); // Update courses state with fetched data
+        setCourses(response.data);
       } catch (error) {
         const errorMessage = error.response?.data?.error || 'Lỗi khi lấy danh sách khóa học!';
         message.error(errorMessage);
@@ -60,52 +78,59 @@ const Quiz = () => {
     fetchCourses();
   }, []);
 
-
   const handleImageChange = (e) => {
     if (e.target.files && e.target.files.length > 0) {
       setSelectedImage(e.target.files[0]);
     }
   };
 
-  const handleQuizCreate = (values) => {
+  const handleQuizCreate = async (values) => {
     const { course_id, name, duration, quiz_time } = values;
 
-    // Kiểm tra token trong localStorage
     const token = localStorage.getItem('accessToken');
     if (!token) {
       message.error('Bạn chưa đăng nhập!');
-      return; // Dừng việc tạo quiz nếu không có token
+      return;
     }
 
-    // Tạo FormData để gửi file và dữ liệu khác
     const formData = new FormData();
     formData.append('course_id', course_id);
     formData.append('name', name);
 
-    // Chỉ thêm image nếu có file ảnh
     if (selectedImage) {
-      formData.append('image', selectedImage); // Sử dụng trạng thái ảnh
+      formData.append('image', selectedImage);
     }
 
     formData.append('duration', duration.format('HH:mm:ss'));
     formData.append('quiz_time', quiz_time);
 
-    // Gửi yêu cầu API để tạo bộ câu hỏi
-    axios.post(`http://127.0.0.1:5000/api/quiz/${course_id}/`, formData, {
-      headers: {
-        'Authorization': `Bearer ${token}`, // Thêm token vào header
-        'Content-Type': 'multipart/form-data',  // Set kiểu dữ liệu phù hợp cho tải lên file
-      }
-    })
-    .then(response => {
+    try {
+      const response = await axios.post(`http://127.0.0.1:5000/api/quiz/${course_id}/`, formData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        }
+      });
+
       message.success('Tạo bộ câu hỏi thành công');
+      
+      // Refresh quizzes after successful creation
+      await fetchQuizzes();
+      
       setSelectedImage(null);
       setQuizModalVisible(false);
-    })
-    .catch(error => {
+      quizForm.resetFields();
+    } catch (error) {
+      console.error('Quiz creation error:', error);
       message.error('Không thể tạo bộ câu hỏi');
-    });
+    }
   };
+
+  const showModal = () => setIsModalVisible(true);
+  const closeModal = () => setIsModalVisible(false);
+
+  // Calculate the quizzes to display on the current page
+  const currentQuizzes = quizzes.slice((currentPage - 1) * quizzesPerPage, currentPage * quizzesPerPage);
 
   return (
     <div>
@@ -124,7 +149,6 @@ const Quiz = () => {
         footer={null}
       >
         <Form form={quizForm} onFinish={handleQuizCreate}>
-          {/* Select Course */}
           <Form.Item name="course_id" label="Khóa Học" rules={[{ required: true, message: 'Vui lòng chọn khóa học' }]}>
             <Select placeholder="Chọn khóa học">
               {courses.map((course) => (
@@ -135,22 +159,18 @@ const Quiz = () => {
             </Select>
           </Form.Item>
 
-          {/* Quiz Name */}
           <Form.Item name="name" label="Tên Bộ Câu Hỏi" rules={[{ required: true, message: 'Vui lòng nhập tên bộ câu hỏi' }]}>
             <Input />
           </Form.Item>
 
-          {/* Image Upload (optional) */}
           <Form.Item name="image" label="Hình Ảnh">
-            <Input type="file" accept="image/*" onChange={handleImageChange}  />
+            <Input type="file" accept="image/*" onChange={handleImageChange} />
           </Form.Item>
 
-          {/* Duration */}
           <Form.Item name="duration" label="Thời Gian Thực Hiện" rules={[{ required: true, message: 'Vui lòng nhập thời gian thực hiện' }]}>
             <TimePicker format="HH:mm:ss" />
           </Form.Item>
 
-          {/* Quiz Time */}
           <Form.Item name="quiz_time" label="Thời Gian Làm Bài" rules={[{ required: true, message: 'Vui lòng chọn thời gian làm bài' }]}>
             <Input type="datetime-local" />
           </Form.Item>
@@ -164,11 +184,21 @@ const Quiz = () => {
       </Modal>
 
       <QuestionFormModal isVisible={isModalVisible} onClose={closeModal} />
+
       <div className="quiz-list">
-        {quizzes.map((quiz) => (
+        {currentQuizzes.map((quiz) => (
           <QuizCard key={quiz.id} quiz={quiz} />
         ))}
       </div>
+
+      <Pagination
+        className='pagination-quiz'
+        current={currentPage}
+        total={quizzes.length}
+        pageSize={quizzesPerPage}
+        onChange={(page) => setCurrentPage(page)}
+        style={{ marginTop: 20 }}
+      />
     </div>
   );
 };

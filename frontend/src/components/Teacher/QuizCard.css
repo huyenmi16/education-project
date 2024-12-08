@@ -1,73 +1,100 @@
+/* Container chứa danh sách quiz */
 .quiz-list {
-    margin-top: 20px;
-    display: flex;
-    flex-wrap: nowrap; /* Không cho các phần tử chuyển xuống dòng mới */
-    gap: 20px; /* Khoảng cách giữa các quiz card */
-    overflow-x: auto; /* Cho phép cuộn ngang nếu các quiz card quá rộng */
-  }
+  margin: 80px 0 50px 0;
+  display: flex;
+  flex-wrap: nowrap; /* Không cho các phần tử chuyển xuống dòng mới */
+  gap: 20px; /* Khoảng cách giữa các quiz card */
+  overflow-x: auto; /* Cho phép cuộn ngang nếu các quiz card quá rộng */
+}
 
-  
+/* Thiết kế cho từng quiz card */
+.quiz-card {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  max-width: 300px;
+  width: 100%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease; /* Hiệu ứng thu nhỏ khi hover */
+}
 
-  .quiz-card {
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 20px;
-    max-width: 300px;
-    width: 100%;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
-  }
-  
-  .quiz-card:hover {
-    transform: scale(1.05);
-  }
-  
-  .quiz-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-  }
-  
-  .quiz-card-header h2 {
-    font-size: 18px;
-    margin: 0;
-  }
-  
-  .quiz-card-header img {
-    width: 50px;
-    height: 50px;
-    object-fit: cover;
-    border-radius: 50%;
-  }
-  
-  .quiz-card-info p {
-    margin: 5px 0;
-    font-size: 14px;
-    color: #555;
-  }
-  
-  .see-more-btn {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    margin-top: 10px;
-  }
-  
-  .see-more-btn:hover {
-    background-color: #0056b3;
-  }
-  
-  .quiz-card-details {
-    margin-top: 15px;
-    font-size: 14px;
-    color: #333;
-    border-top: 1px solid #ddd;
-    padding-top: 10px;
-  }
-  
+/* Hiệu ứng hover khi di chuột qua quiz card */
+.quiz-card:hover {
+  transform: scale(1.05); /* Phóng to quiz card khi hover */
+}
+
+/* Phần header của quiz card */
+.quiz-card-header {
+  display: flex;
+  justify-content: center; /* Căn giữa hình ảnh theo chiều ngang */
+  align-items: center; /* Căn giữa hình ảnh theo chiều dọc */
+  width: 100%; /* Đảm bảo ảnh chiếm toàn bộ chiều rộng của container */
+  height: 150px; /* Đặt chiều cao cố định cho phần header */
+  margin-bottom: 30px;
+}
+
+.quiz-card-header img {
+  width: 100%; /* Đảm bảo ảnh chiếm toàn bộ chiều rộng của phần header */
+  height: 180px; /* Giữ tỷ lệ chiều cao của ảnh */
+  object-fit: cover; /* Đảm bảo hình ảnh được cắt tỉa theo tỷ lệ mà không bị méo */
+}
+
+/* Đặt viền cho hình ảnh mặc định */
+.quiz-card-header img[alt="default"] {
+  border: 2px solid #ddd; /* Viền cho ảnh mặc định */
+}
+
+/* Tiêu đề của quiz card */
+.quiz-card-header h2 {
+  font-size: 18px;
+  margin: 0;
+  text-align: center; /* Căn giữa tiêu đề */
+  color: #333; /* Màu chữ */
+  font-weight: bold; /* Đậm cho tiêu đề */
+}
+
+/* Phần thông tin bên dưới header */
+.quiz-card-info {
+  margin-left: 10px;
+}
+
+.quiz-card-info p {
+  margin: 5px 0;
+  font-size: 14px;
+  color: #555; /* Màu chữ thông tin */
+}
+
+/* Nút "Xem thêm" */
+.see-more-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 10px;
+  text-align: center;
+  display: block; /* Đảm bảo nút là một khối và chiếm không gian */
+}
+
+/* Hiệu ứng khi hover qua nút "Xem thêm" */
+.see-more-btn:hover {
+  background-color: #0056b3;
+}
+
+/* Phần chi tiết của quiz card */
+.quiz-card-details {
+  margin-top: 15px;
+  font-size: 14px;
+  color: #333;
+  border-top: 1px solid #ddd;
+  padding-top: 10px;
+}
+
+/* Phân trang */
+.pagination-quiz {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

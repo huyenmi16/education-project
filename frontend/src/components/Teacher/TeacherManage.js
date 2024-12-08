@@ -40,10 +40,10 @@ const TeacherManage = () => {
         <Button
             onClick={handleLogout}
             style={{
-              background: '#00b0ff', // Màu xanh da trời sáng
+              background: '#1a73e8', // Màu xanh da trời sáng
               color: '#fff', // Màu chữ là trắng
               marginTop: '66vh',
-              marginLeft: '35px',
+              marginLeft: '28px',
               padding: '10px 20px', // Thêm padding cho nút đẹp hơn
               display: 'flex',
               justifyContent: 'center',
@@ -57,7 +57,8 @@ const TeacherManage = () => {
             onMouseLeave={(e) => e.target.style.background = '#00b0ff'} // Màu nền khi không hover
           >
         <LogoutOutlined style={{ fontSize: '20px' }} /> {/* Biểu tượng Logout */}
-      </Button>
+        Login
+        </Button>
       </Sider>
 
       <Layout>

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Card, Form, Input, Button, message, Upload } from 'antd';
-import { EditOutlined, UploadOutlined } from '@ant-design/icons';
+import { Layout, Card, Form, Input, Button, message, Upload, Modal } from 'antd';
+import { EditOutlined, UploadOutlined, LockOutlined, UserOutlined, MailOutlined, PhoneOutlined, HomeOutlined } from '@ant-design/icons';
 import axios from 'axios';
+import './Teacher.css';
 
 const { Content } = Layout;
 
 const Teacher = () => {
-
     const [profileData, setProfileData] = useState({
         username: '',
         email: '',
@@ -19,8 +19,10 @@ const Teacher = () => {
 
     const [isEditing, setIsEditing] = useState(false);
     const [isChangingPassword, setIsChangingPassword] = useState(false);
+    const [form] = Form.useForm();
+    const [passwordForm] = Form.useForm();
 
-    const baseUrl = 'http://127.0.0.1:4000'; // Cấu hình URL gốc của server
+    const baseUrl = 'http://127.0.0.1:4000';
 
     useEffect(() => {
         axios.get(`${baseUrl}/api/profile/`, {
@@ -34,7 +36,7 @@ const Teacher = () => {
         });
     }, []);
 
-    const handleUpdateProfile = values => {
+    const handleUpdateProfile = (values) => {
         axios.put(`${baseUrl}/api/update-profile/`, values, {
             headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
         })
@@ -48,20 +50,26 @@ const Teacher = () => {
         });
     };
 
-    const handleChangePassword = values => {
+    const handleChangePassword = (values) => {
+        if (values.new_password !== values.confirm_new_password) {
+            message.error('New passwords do not match');
+            return;
+        }
+
         axios.post(`${baseUrl}/api/change-password/`, values, {
             headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
         })
         .then(() => {
             setIsChangingPassword(false);
             message.success('Password changed successfully');
+            passwordForm.resetFields();
         })
-        .catch(() => {
-            message.error('Failed to change password');
+        .catch((error) => {
+            message.error(error.response?.data?.message || 'Failed to change password');
         });
     };
 
-    const handleImageUpload = options => {
+    const handleImageUpload = (options) => {
         const { file } = options;
         const formData = new FormData();
         formData.append('image', file);
@@ -81,7 +89,7 @@ const Teacher = () => {
         });
     };
 
-    const handleCertificateUpload = options => {
+    const handleCertificateUpload = (options) => {
         const { file } = options;
         const formData = new FormData();
         formData.append('certificate', file);
@@ -102,124 +110,211 @@ const Teacher = () => {
     };
 
     return (
-        <Layout style={{ minHeight: '100vh' }}>
-            <Content style={{ padding: '20px', margin: 'auto', maxWidth: '600px' }}>
-                <Card
+        <Layout style={{ minHeight: '80vh' }}>
+            <Content style={{ padding: '20px', margin: 'auto', maxWidth: '1220px' }}>
+            <Card
                     title="Profile"
                     bordered={false}
-                    style={{ width: '100%' }}
+                    style={{ width: '170vh',height:'74vh' }}
                     extra={
-                        <EditOutlined onClick={() => setIsEditing(true)} style={{ fontSize: '20px', color: '#1890ff' }} />
+                        <>
+                            <EditOutlined 
+                                onClick={() => {
+                                    form.setFieldsValue(profileData);
+                                    setIsEditing(true);
+                                }} 
+                                style={{ fontSize: '20px', color: '#1890ff', cursor: 'pointer' }} 
+                            />
+                            <LockOutlined 
+                                onClick={() => setIsChangingPassword(true)} 
+                                style={{ fontSize: '20px', color: '#1890ff', cursor: 'pointer', marginLeft: '15px' }} 
+                            />
+                        </>
                     }
                 >
-                    <p><strong>Username:</strong> {profileData.username}</p>
-                    <p><strong>Email:</strong> {profileData.email}</p>
-                    <p><strong>Personal Email:</strong> {profileData.personal_email}</p>
-                    <p><strong>Phone Number:</strong> {profileData.phone_number}</p>
-                    <p><strong>Address:</strong> {profileData.address}</p>
-                    {profileData.image && (
-                        <img
-                            src={`${baseUrl}${profileData.image}`}
-                            alt="Profile"
-                            style={{ maxWidth: '100%', maxHeight: '200px', objectFit: 'cover', marginBottom: '10px' }}
-                        />
-                    )}
-                    {profileData.image_certificate && (
-                        <p>
-                            <a
-                                href={`${baseUrl}${profileData.image_certificate}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                View Certificate
-                            </a>
-                        </p>
-                    )}
-                    <Button onClick={() => setIsChangingPassword(true)} style={{ marginTop: '10px' }}>
-                        Change Password
-                    </Button>
-                </Card>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',marginTop:'100px' }}>
+                        <div style={{ flex: 1 }}>
+                            <p><strong>Username:</strong> {profileData.username}</p>
+                            <p><strong>Email:</strong> {profileData.email}</p>
+                            <p><strong>Personal Email:</strong> {profileData.personal_email}</p>
+                            <p><strong>Phone Number:</strong> {profileData.phone_number}</p>
+                            <p><strong>Address:</strong> {profileData.address}</p>
+                            
+                            {profileData.image_certificate && (
+                                <p>
+                                    <a
+                                        href={`${baseUrl}${profileData.image_certificate}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        View Certificate
+                                    </a>
+                                </p>
+                            )}
+                        </div>
 
-                {/* Update profile form */}
-                {isEditing && (
-                    <Card title="Update Profile" bordered={false} style={{ width: '100%', marginTop: 20 }}>
-                        <Form initialValues={profileData} onFinish={handleUpdateProfile}>
-                            <Form.Item name="username" label="Username">
-                                <Input />
-                            </Form.Item>
-                            <Form.Item name="email" label="Email">
-                                <Input />
-                            </Form.Item>
-                            <Form.Item name="personal_email" label="Personal Email">
-                                <Input />
-                            </Form.Item>
-                            <Form.Item name="phone_number" label="Phone Number">
-                                <Input />
-                            </Form.Item>
-                            <Form.Item name="address" label="Address">
-                                <Input />
-                            </Form.Item>
-                            <Form.Item name="image" label="Profile Image">
-                                <Upload customRequest={handleImageUpload} showUploadList={false}>
-                                    <Button icon={<UploadOutlined />}>Upload</Button>
-                                </Upload>
-                            </Form.Item>
-                            <Form.Item name="image_certificate" label="Certificate">
-                                <Upload customRequest={handleCertificateUpload} showUploadList={false}>
-                                    <Button icon={<UploadOutlined />}>Upload</Button>
-                                </Upload>
-                            </Form.Item>
-                            <Form.Item>
-                                <Button type="primary" htmlType="submit">
-                                    Save Changes
-                                </Button>
-                                <Button onClick={() => setIsEditing(false)} style={{ marginLeft: '10px' }}>
-                                    Cancel
-                                </Button>
-                            </Form.Item>
-                        </Form>
-                    </Card>
-                )}
+                        {profileData.image && (
+                            <div style={{ marginLeft: '20px' }}>
+                                <img
+                                    src={`${baseUrl}${profileData.image}`}
+                                    alt="Profile"
+                                    style={{
+                                        width: '200px',
+                                        height: '200px',
+                                        borderRadius: '50%',
+                                        objectFit: 'cover',
+                                        marginBottom: '10px'
+                                    }}
+                                />
+                            </div>
+                        )}
+                    </div>
+            </Card>
 
-                {/* Change password form */}
-                {isChangingPassword && (
-                    <Card title="Change Password" bordered={false} style={{ width: '100%', marginTop: 20 }}>
-                        <Form onFinish={handleChangePassword}>
-                            <Form.Item
-                                name="old_password"
-                                label="Old Password"
-                                rules={[{ required: true, message: 'Please input your old password!' }]}
+
+                {/* Edit Profile Modal */}
+                <Modal
+                    title="Edit Profile"
+                    open={isEditing}
+                    onCancel={() => setIsEditing(false)}
+                    footer={null}
+                >
+                    <Form 
+                        form={form}
+                        layout="vertical"
+                        onFinish={(values) => {
+                            handleUpdateProfile(values);
+                        }}
+                    >
+                        <Form.Item 
+                            name="username" 
+                            label="Username"
+                            rules={[{ required: true, message: 'Please input your username!' }]}
+                        >
+                            <Input prefix={<UserOutlined />} />
+                        </Form.Item>
+                        
+                        <Form.Item 
+                            name="email" 
+                            label="Email"
+                            rules={[
+                                { required: true, message: 'Please input your email!' },
+                                { type: 'email', message: 'Please enter a valid email!' }
+                            ]}
+                        >
+                            <Input prefix={<MailOutlined />} />
+                        </Form.Item>
+                        
+                        <Form.Item 
+                            name="personal_email" 
+                            label="Personal Email"
+                            rules={[
+                                { type: 'email', message: 'Please enter a valid email!' }
+                            ]}
+                        >
+                            <Input prefix={<MailOutlined />} />
+                        </Form.Item>
+                        
+                        <Form.Item 
+                            name="phone_number" 
+                            label="Phone Number"
+                        >
+                            <Input prefix={<PhoneOutlined />} />
+                        </Form.Item>
+                        
+                        <Form.Item 
+                            name="address" 
+                            label="Address"
+                        >
+                            <Input prefix={<HomeOutlined />} />
+                        </Form.Item>
+                        
+                        <Form.Item name="image" label="Profile Image">
+                            <Upload 
+                                customRequest={handleImageUpload} 
+                                showUploadList={false}
+                                maxCount={1}
                             >
-                                <Input.Password />
-                            </Form.Item>
-                            <Form.Item
-                                name="new_password"
-                                label="New Password"
-                                rules={[{ required: true, message: 'Please input your new password!' }]}
+                                <Button icon={<UploadOutlined />}>Upload Profile Image</Button>
+                            </Upload>
+                        </Form.Item>
+                        
+                        <Form.Item name="image_certificate" label="Certificate">
+                            <Upload 
+                                customRequest={handleCertificateUpload} 
+                                showUploadList={false}
+                                maxCount={1}
                             >
-                                <Input.Password />
-                            </Form.Item>
-                            <Form.Item
-                                name="confirm_new_password"
-                                label="Confirm New Password"
-                                rules={[{ required: true, message: 'Please confirm your new password!' }]}
-                            >
-                                <Input.Password />
-                            </Form.Item>
-                            <Form.Item>
-                                <Button type="primary" htmlType="submit">
-                                    Change Password
-                                </Button>
-                                <Button onClick={() => setIsChangingPassword(false)} style={{ marginLeft: '10px' }}>
-                                    Cancel
-                                </Button>
-                            </Form.Item>
-                        </Form>
-                    </Card>
-                )}
+                                <Button icon={<UploadOutlined />}>Upload Certificate</Button>
+                            </Upload>
+                        </Form.Item>
+                        
+                        <Form.Item>
+                            <Button type="primary" htmlType="submit" block>
+                                Save Changes
+                            </Button>
+                        </Form.Item>
+                    </Form>
+                </Modal>
+
+                {/* Change Password Modal */}
+                <Modal
+                    title="Change Password"
+                    open={isChangingPassword}
+                    onCancel={() => setIsChangingPassword(false)}
+                    footer={null}
+                >
+                    <Form 
+                        form={passwordForm}
+                        layout="vertical"
+                        onFinish={handleChangePassword}
+                    >
+                        <Form.Item
+                            name="old_password"
+                            label="Old Password"
+                            rules={[{ required: true, message: 'Please input your old password!' }]}
+                        >
+                            <Input.Password prefix={<LockOutlined />} />
+                        </Form.Item>
+                        
+                        <Form.Item
+                            name="new_password"
+                            label="New Password"
+                            rules={[
+                                { required: true, message: 'Please input your new password!' },
+                                { min: 8, message: 'Password must be at least 8 characters long' }
+                            ]}
+                        >
+                            <Input.Password prefix={<LockOutlined />} />
+                        </Form.Item>
+                        
+                        <Form.Item
+                            name="confirm_new_password"
+                            label="Confirm New Password"
+                            dependencies={['new_password']}
+                            rules={[
+                                { required: true, message: 'Please confirm your new password!' },
+                                ({ getFieldValue }) => ({
+                                    validator(_, value) {
+                                        if (!value || getFieldValue('new_password') === value) {
+                                            return Promise.resolve();
+                                        }
+                                        return Promise.reject(new Error('The two passwords do not match!'));
+                                    },
+                                }),
+                            ]}
+                        >
+                            <Input.Password prefix={<LockOutlined />} />
+                        </Form.Item>
+                        
+                        <Form.Item>
+                            <Button type="primary" htmlType="submit" block>
+                                Change Password
+                            </Button>
+                        </Form.Item>
+                    </Form>
+                </Modal>
             </Content>
-
-            
         </Layout>
     );
 };

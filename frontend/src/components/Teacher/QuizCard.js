@@ -72,7 +72,7 @@ const QuizCard = ({ quiz, onDelete, onEdit }) => {
 
       <div className="quiz-card-info">
         <h3>{quiz.name}</h3>
-        <p>Course ID: {quiz.course_id}</p>
+        <p>Course: {quiz.course_name}</p>
         <p>Duration: {quiz.duration} minutes</p>
         <p>Quiz Time: {new Date(quiz.quiz_time).toLocaleString()}</p>
       </div>
