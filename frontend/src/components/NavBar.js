@@ -8,7 +8,7 @@ import './Navbar.css';
 const Navbar = ({courses}) => {
     const [username, setUsername] = useState(""); // Khởi tạo state cho username
     const [searchQuery, setSearchQuery] = useState("");
-    // const [searchResults, setSearchResults] = useState([]);
+    const [allCourses, setAllCourses] = useState([]); // Lưu trữ danh sách khóa học ban đầu
     const navigate = useNavigate();
 
     // Gọi API để lấy thông tin người dùng
@@ -41,6 +41,13 @@ const Navbar = ({courses}) => {
         fetchUserProfile();
     }, []);
 
+    // Lưu danh sách tất cả các khóa học ban đầu
+    useEffect(() => {
+        if (courses) {
+            setAllCourses(courses);
+        }
+    }, [courses]);
+
     // Xử lý khi click vào "Profile"
     const handleProfileClick = () => {
         navigate("/profile"); // Điều hướng đến trang Profile
@@ -52,18 +59,22 @@ const Navbar = ({courses}) => {
         navigate("/"); // Điều hướng đến trang đăng nhập
     };
 
+    // Xử lý khi thay đổi giá trị tìm kiếm
     const handleSearchChange = (e) => {
         const query = e.target.value;
         setSearchQuery(query);
 
         if (query.trim()) {
-            const results = courses.filter(course =>
+            // Nếu có query, tìm kiếm trong danh sách khóa học
+            const results = allCourses.filter(course =>
                 course.title.toLowerCase().includes(query.toLowerCase())
             );
             navigate("/list-courses", { state: { searchResults: results } });
+        } else {
+            // Nếu không có query, hiển thị lại toàn bộ danh sách khóa học
+            navigate("/list-courses", { state: { searchResults: allCourses } });
         }
     };
-
 
     const menu = (
         <Menu>
@@ -90,13 +101,12 @@ const Navbar = ({courses}) => {
                         className="search-input"
                         value={searchQuery}
                         onChange={handleSearchChange}
-                        
                     />
                 </div>
                 <FontAwesomeIcon
                     icon={faMagnifyingGlass}
                     className="search-icon"
-                    onClick={() => handleSearchChange()}
+                    onClick={() => handleSearchChange()}  // Xử lý khi click vào biểu tượng tìm kiếm
                     style={{ cursor: 'pointer' }} // Thêm kiểu con trỏ dạng tay khi hover
                 />
             </div>

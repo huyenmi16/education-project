@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Layout, Row, Col, Pagination } from 'antd';
+import { useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar'; 
 import Navbar from './NavBar';
 import CourseCard from './CourseCard'; // Import the CourseCard component
@@ -12,7 +13,8 @@ const CourseLayout = () => {
   const [courses, setCourses] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(8);
-
+  const location = useLocation();
+  const [originalCourses, setOriginalCourses] = useState([]);
   // Fetch courses from the API
   useEffect(() => {
     const fetchCourses = async () => {
@@ -22,6 +24,7 @@ const CourseLayout = () => {
         const data = await response.json();
 
         setCourses(data);
+        setOriginalCourses(data);
       } catch (error) {
         console.error('Error fetching courses:', error);
       }
@@ -29,6 +32,14 @@ const CourseLayout = () => {
 
     fetchCourses();
   }, []);
+
+  useEffect(() => {
+    if (location.state?.searchResults) {
+        setCourses(location.state.searchResults); // Hiển thị kết quả tìm kiếm
+    } else {
+        setCourses(originalCourses); // Hiển thị danh sách khóa học ban đầu
+    }
+  }, [location.state, originalCourses]);
 
   // Pagination logic
   const startIndex = (currentPage - 1) * pageSize;
@@ -45,7 +56,7 @@ const CourseLayout = () => {
       <Sidebar style={{ position: 'fixed', height: '100vh' }} />
 
       <Layout>
-        <Navbar style={{ position: 'fixed', width: '100%', zIndex: 1 }} />
+        <Navbar  courses={originalCourses} style={{ position: 'fixed', width: '100%', zIndex: 1 }} />
 
         <Content className="content-course-layout">
           <div className="content-card-parent">
