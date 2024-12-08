@@ -1,8 +1,9 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Modal, Form, Input, Upload, Select, TimePicker, message, Card, Row, Col } from 'antd';
-import { UploadOutlined ,DeleteOutlined,EditOutlined} from '@ant-design/icons';
+import { UploadOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
+import CourseCard from "./Course/ListCourseTeacher"
 
 import moment from 'moment';
 
@@ -21,7 +22,7 @@ const Course = () => {
   const [editCourseModalVisible, setEditCourseModalVisible] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState(null); // Lưu thông tin khóa học đang chỉnh sửa
   const [editCourseForm] = Form.useForm(); // Form cho modal chỉnh sửa
-  
+
 
   const [imageFile, setImageFile] = useState(null);
 
@@ -56,7 +57,7 @@ const Course = () => {
 
 
   const handleStartNowClick = (id) => {
-    navigate(`/courses/${id}`); 
+    navigate(`/courses/${id}`);
   };
 
   const handleEditCourseClick = (course) => {
@@ -72,30 +73,30 @@ const Course = () => {
     });
 
   };
-  
+
 
 
 
   const handleCourseCreate = async (values) => {
     const token = localStorage.getItem('accessToken'); // Get token from localStorage
-  
+
     if (!token) {
       message.error('Bạn chưa đăng nhập!');
       return;
     }
-  
+
     const formData = new FormData();
     formData.append('title', values.courseName);
     formData.append('description', values.description);
     formData.append('duration', values.duration.format('HH:mm:ss')); // Convert to HH:mm:ss
     formData.append('price', values.price);
     formData.append('level', values.level);
-  
+
     // Check if there is an image and add it to the formData
     if (imageFile) {
       formData.append('image', imageFile); // Attach the image file directly
     }
-  
+
     try {
       const response = await axios.post(
         'http://127.0.0.1:8000/api/add-courses/',  // API endpoint Django
@@ -107,7 +108,7 @@ const Course = () => {
           },
         }
       );
-  
+
       message.success(response.data.message || 'Tạo khóa học thành công!');
       setCourseModalVisible(false); // Close modal
       courseForm.resetFields(); // Reset form fields
@@ -121,16 +122,16 @@ const Course = () => {
 
   const handleEditCourse = async (values) => {
     const token = localStorage.getItem('accessToken');
-  
+
     if (!token) {
       message.error('Bạn chưa đăng nhập!');
       return;
     }
-  
-    
+
+
     let formattedDuration = moment(values.duration, 'HH:mm:ss').format('HH:mm:ss');
     if (!values.duration) {
-      const duration= editCourseForm.getFieldValue('duration')
+      const duration = editCourseForm.getFieldValue('duration')
       formattedDuration = moment(duration, 'HH:mm:ss').format('HH:mm:ss');
     }
     console.log('duration: ', editCourseForm.getFieldValue('duration'))
@@ -143,12 +144,12 @@ const Course = () => {
     formData.append('price', values.price);
     formData.append('level', values.level);
     formData.append('image', values.image || '');
-  
+
     if (imageFile) {
       formData.delete('image');
       formData.append('image', imageFile); // Nếu có ảnh mới
     }
-  
+
     try {
       const response = await axios.put(
         `http://127.0.0.1:8000/api/update-delete/${selectedCourse.id}/`,
@@ -160,7 +161,7 @@ const Course = () => {
           },
         }
       );
-  
+
       message.success(response.data.message || 'Cập nhật khóa học thành công!');
       setEditCourseModalVisible(false);
       setImageFile(null);
@@ -177,16 +178,16 @@ const Course = () => {
       message.error(errorMessage);
     }
   };
-  
+
 
   const handleDeleteCourse = async (courseId) => {
     const token = localStorage.getItem('accessToken');
-  
+
     if (!token) {
       message.error('Bạn chưa đăng nhập!');
       return;
     }
-  
+
     try {
       const response = await axios.delete(
         `http://127.0.0.1:8000/api/update-delete/${courseId}/`,
@@ -194,7 +195,7 @@ const Course = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-  
+
       message.success(response.data.message || 'Xóa khóa học thành công!');
       setCourses((prevCourses) => prevCourses.filter(course => course.id !== courseId));
 
@@ -205,11 +206,11 @@ const Course = () => {
       message.error(errorMessage);
     }
   };
-  
+
 
   const handleImageChange = (e) => {
     const file = e.target.files[0]; // Get the first selected file
-  
+
     if (file && file.type.startsWith('image/')) { // Ensure the file is an image
       setImageFile(file); // Save the selected image file
     } else {
@@ -257,7 +258,7 @@ const Course = () => {
       message.error('Bạn chưa đăng nhập!');
       return;
     }
-  
+
     try {
       const response = await axios.get(
         `http://127.0.0.1:8000/api/all-chapters/${courseId}/`,
@@ -273,14 +274,14 @@ const Course = () => {
     }
   };
 
-  
+
   const handleLessonCreate = async (values) => {
     const token = localStorage.getItem('accessToken');
     if (!token) {
       message.error('Bạn chưa đăng nhập!');
       return;
     }
-  
+
     const data = {
       title: values.lessonTitle,
       chapter: values.chapterId,
@@ -288,7 +289,7 @@ const Course = () => {
       duration: values.duration.format('HH:mm:ss'),
       type: values.type,
     };
-  
+
     try {
       const response = await axios.post(
         `http://127.0.0.1:8000/api/chapters/${values.chapterId}/lessons/`,
@@ -297,7 +298,7 @@ const Course = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-  
+
       message.success(response.data.message || 'Tạo bài học thành công!');
       setLessonModalVisible(false);
       lessonForm.resetFields(); // Reset form
@@ -307,7 +308,7 @@ const Course = () => {
       message.error(errorMessage);
     }
   };
-  
+
 
 
 
@@ -338,52 +339,26 @@ const Course = () => {
 
 
       <div style={{ padding: "16px" }}>
-     
 
-      {/* Danh sách các khóa học */}
-      <Row gutter={[16, 16]}>
-        {courses.map((course) => (
-          <Col xs={24} sm={12} md={8} lg={6} key={course.id}>
-            <Card
-              hoverable
-              cover={<img alt={course.title} src={course.image ? `http://127.0.0.1:8000${course.image}` : 'https://via.placeholder.com/300x150'} />}
-              style={{ width: "100%" }}
-            >
-              <Card.Meta
-                title={course.title}
-                description={
-                  <>
-                    <p>Price: ${course.price}</p>
-                    <span>
-                      Time: {course.duration} 
-                      <br></br>
-                      Teacher: {course.instructor} 
-                      <br></br>
-                      Level: {course.level}
-                    </span>
-                  </>
-                }
+
+        {/* Danh sách các khóa học */}
+
+        <Row gutter={[16, 16]}>
+          {courses.map((course) => (
+            <Col xs={24} sm={12} md={8} lg={6} key={course.id}>
+              <CourseCard
+                course={course}
+                onEdit={handleEditCourseClick}
+                onDelete={handleDeleteCourse}
+                onSeeMore={handleStartNowClick}
+                showAdminActions={true} // Set false nếu không muốn hiện nút Edit/Delete
               />
+            </Col>
+          ))}
+        </Row>
+      </div>
 
-            <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'space-between' }}>
-                <Button onClick={() => handleEditCourseClick(course)} icon={<EditOutlined />} />
-                <Button onClick={() => handleDeleteCourse(course.id)} icon={<DeleteOutlined />} danger />
-                <Button
-                    onClick={() => handleStartNowClick(course.id)}
-                    type="primary"
-                    style={{ marginTop: "16px" }}
-                  >
-                    See More
-              </Button>
-              </div>
-             
-            </Card>
-          </Col>
-        ))}
-      </Row>
-    </div>
-
-    <Modal
+      <Modal
         title="Tạo Khóa Học"
         visible={courseModalVisible}
         onCancel={() => setCourseModalVisible(false)}
@@ -438,18 +413,17 @@ const Course = () => {
               onChange={handleImageChange} // Handle file selection
             />
           </Form.Item>
-
           <Form.Item>
             <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
               Xác Nhận
             </Button>
           </Form.Item>
         </Form>
-    </Modal>
+      </Modal>
 
       {/* modal them chapter */}
 
-    <Modal
+      <Modal
         title="Tạo Chương"
         visible={chapterModalVisible}
         onCancel={() => setChapterModalVisible(false)}
@@ -482,97 +456,97 @@ const Course = () => {
             </Button>
           </Form.Item>
         </Form>
-    </Modal>
+      </Modal>
 
       {/* Modal tạo lesson */}
 
-    <Modal
-  title="Tạo Bài Học"
-  visible={lessonModalVisible}
-  onCancel={() => setLessonModalVisible(false)}
-  footer={null}
->
-  <Form form={lessonForm} onFinish={handleLessonCreate}>
-    {/* Chọn khóa học */}
-    <Form.Item
-      name="courseId"
-      label="Khóa Học"
-      rules={[{ required: true, message: 'Vui lòng chọn khóa học!' }]}
-    >
-      <Select
-        placeholder="Chọn khóa học"
-        onChange={handleCourseChange} // Khi chọn khóa học
+      <Modal
+        title="Tạo Bài Học"
+        visible={lessonModalVisible}
+        onCancel={() => setLessonModalVisible(false)}
+        footer={null}
       >
-        {courses.map((course) => (
-          <Option key={course.id} value={course.id}>
-            {course.title}
-          </Option>
-        ))}
-      </Select>
-    </Form.Item>
+        <Form form={lessonForm} onFinish={handleLessonCreate}>
+          {/* Chọn khóa học */}
+          <Form.Item
+            name="courseId"
+            label="Khóa Học"
+            rules={[{ required: true, message: 'Vui lòng chọn khóa học!' }]}
+          >
+            <Select
+              placeholder="Chọn khóa học"
+              onChange={handleCourseChange} // Khi chọn khóa học
+            >
+              {courses.map((course) => (
+                <Option key={course.id} value={course.id}>
+                  {course.title}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
 
-    {/* Chọn chương */}
-    <Form.Item
-      name="chapterId"
-      label="Chương"
-      rules={[{ required: true, message: 'Vui lòng chọn chương!' }]}
-    >
-      <Select placeholder="Chọn chương">
-        {chapters.map((chapter) => (
-          <Option key={chapter.id} value={chapter.id}>
-            {chapter.title}
-          </Option>
-        ))}
-      </Select>
-    </Form.Item>
+          {/* Chọn chương */}
+          <Form.Item
+            name="chapterId"
+            label="Chương"
+            rules={[{ required: true, message: 'Vui lòng chọn chương!' }]}
+          >
+            <Select placeholder="Chọn chương">
+              {chapters.map((chapter) => (
+                <Option key={chapter.id} value={chapter.id}>
+                  {chapter.title}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
 
-    {/* Tên bài học */}
-    <Form.Item
-      name="lessonTitle"
-      label="Tên Bài Học"
-      rules={[{ required: true, message: 'Vui lòng nhập tên bài học!' }]}
-    >
-      <Input />
-    </Form.Item>
+          {/* Tên bài học */}
+          <Form.Item
+            name="lessonTitle"
+            label="Tên Bài Học"
+            rules={[{ required: true, message: 'Vui lòng nhập tên bài học!' }]}
+          >
+            <Input />
+          </Form.Item>
 
-    {/* Nội dung */}
-    <Form.Item name="content" label="Nội Dung">
-      <Input.TextArea />
-    </Form.Item>
+          {/* Nội dung */}
+          <Form.Item name="content" label="Nội Dung">
+            <Input.TextArea />
+          </Form.Item>
 
-    {/* Thời lượng */}
-    <Form.Item
-      name="duration"
-      label="Thời Lượng"
-      rules={[{ required: true, message: 'Vui lòng chọn thời lượng!' }]}
-    >
-      <TimePicker format="HH:mm:ss" />
-    </Form.Item>
+          {/* Thời lượng */}
+          <Form.Item
+            name="duration"
+            label="Thời Lượng"
+            rules={[{ required: true, message: 'Vui lòng chọn thời lượng!' }]}
+          >
+            <TimePicker format="HH:mm:ss" />
+          </Form.Item>
 
-    {/* Loại bài học */}
-    <Form.Item
-      name="type"
-      label="Loại Bài Học"
-      rules={[{ required: true, message: 'Vui lòng chọn loại bài học!' }]}
-    >
-      <Select placeholder="Chọn loại bài học">
-        <Option value="video">Video</Option>
-        <Option value="article">Article</Option>
-        <Option value="quiz">Quiz</Option>
-        <Option value="document">Document</Option>
-      </Select>
-    </Form.Item>
+          {/* Loại bài học */}
+          <Form.Item
+            name="type"
+            label="Loại Bài Học"
+            rules={[{ required: true, message: 'Vui lòng chọn loại bài học!' }]}
+          >
+            <Select placeholder="Chọn loại bài học">
+              <Option value="video">Video</Option>
+              <Option value="article">Article</Option>
+              <Option value="quiz">Quiz</Option>
+              <Option value="document">Document</Option>
+            </Select>
+          </Form.Item>
 
-    <Form.Item>
-      <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
-        Xác Nhận
-      </Button>
-    </Form.Item>
-  </Form>
-    </Modal>
+          <Form.Item>
+            <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
+              Xác Nhận
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
 
 
-    <Modal
+      <Modal
         title="Chỉnh Sửa Khóa Học"
         visible={editCourseModalVisible}
         onCancel={() => setEditCourseModalVisible(false)}
@@ -625,14 +599,14 @@ const Course = () => {
               onChange={handleImageChange} // Handle file selection
             />
             {editCourseForm.getFieldValue('image') && (
-    <div style={{ marginTop: 10 }}>
-      <img
-        src={`http://127.0.0.1:8000${editCourseForm.getFieldValue('image')}`}
-        alt="Preview"
-        style={{ width: '100%', maxWidth: 200, height: 'auto' }}
-      />
-    </div>
-  )}
+              <div style={{ marginTop: 10 }}>
+                <img
+                  src={`http://127.0.0.1:8000${editCourseForm.getFieldValue('image')}`}
+                  alt="Preview"
+                  style={{ width: '100%', maxWidth: 200, height: 'auto' }}
+                />
+              </div>
+            )}
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
@@ -640,7 +614,7 @@ const Course = () => {
             </Button>
           </Form.Item>
         </Form>
-    </Modal>
+      </Modal>
 
 
     </div>
