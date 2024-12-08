@@ -78,11 +78,11 @@ const MyCourses = () => {
         
         <Content className="content-course-layout">
           <div className="content-card-parent">
-            <Row className="filter-courses">
+            {/* <Row className="filter-courses">
               <Col>
                 <FilterButton />
               </Col>
-            </Row>
+            </Row> */}
             <Row gutter={[16, 16]}>
               {paginatedCourses.length > 0 ? (
                 paginatedCourses.map((course) => (

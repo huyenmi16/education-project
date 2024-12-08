@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Row, Col, Collapse, Button, Modal, Form, Input, message,Select } from 'antd';
+import { Layout, Row, Col, Collapse, Button, Modal, Form, Input, message, Select } from 'antd';
 import { PlayCircleOutlined, FileTextOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
 import { useParams } from 'react-router-dom';
-
+import LessonDetail from './DetailLesson';
+import './ButtonAction.css'
 const { Content } = Layout;
 const { Panel } = Collapse;
 const { Option } = Select;
@@ -14,6 +15,7 @@ const DetailCourseT = () => {
   const [isEditingLesson, setIsEditingLesson] = useState(false);
   const [currentChapter, setCurrentChapter] = useState(null);
   const [currentLesson, setCurrentLesson] = useState(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const { id } = useParams();
 
   // Fetch course data from API
@@ -159,7 +161,7 @@ const DetailCourseT = () => {
         console.error(error);
       });
   };
-  
+
   // Handle Delete Lesson
   const handleDeleteLesson = (lessonId) => {
     const token = localStorage.getItem('accessToken');
@@ -249,18 +251,18 @@ const DetailCourseT = () => {
                   accordion={false}
                 >
                   {course.chapters.map((chapter, index) => (
-                    <Panel 
+                    <Panel
                       header={
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <span>{`${chapter.title} ・ ${chapter.lessons.length} bài học`}</span>
                           <div>
-                            <Button 
-                              icon={<EditOutlined />} 
-                              onClick={() => openEditChapterModal(chapter)} 
+                            <Button
+                              icon={<EditOutlined />}
+                              onClick={() => openEditChapterModal(chapter)}
                             />
-                            <Button 
-                              icon={<DeleteOutlined />} 
-                              onClick={() => handleDeleteChapter(chapter.id)} 
+                            <Button
+                              icon={<DeleteOutlined />}
+                              onClick={() => handleDeleteChapter(chapter.id)}
                             />
                           </div>
                         </div>
@@ -274,15 +276,16 @@ const DetailCourseT = () => {
                           </span>
                           <span className="lesson-title">{lessonIndex + 1}. {lesson.title}</span>
                           <span className="lesson-duration">{convertDurationToHours(lesson.duration)}</span>
-                          <div className="lesson-actions">
-                            <Button 
-                              icon={<EditOutlined />} 
-                              onClick={() => openEditLessonModal(lesson, chapter)} 
+                          <div className="button-actions">
+                            <Button
+                              icon={<EditOutlined />}
+                              onClick={() => openEditLessonModal(lesson, chapter)}
                             />
-                            <Button 
-                              icon={<DeleteOutlined />} 
-                              onClick={() => handleDeleteLesson(lesson.id)} 
+                            <Button
+                              icon={<DeleteOutlined />}
+                              onClick={() => handleDeleteLesson(lesson.id)}
                             />
+                            <LessonDetail key={lesson.id} lesson={lesson} />
                           </div>
                         </div>
                       ))}
@@ -309,7 +312,7 @@ const DetailCourseT = () => {
           <Form.Item name="title" label="Title" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          
+
           <Form.Item>
             <Button type="primary" htmlType="submit">
               Update Chapter
@@ -346,45 +349,46 @@ const DetailCourseT = () => {
       </Modal> */}
 
       {/* Edit Lesson Modal */}
-<Modal
-  title="Edit Lesson"
-  visible={isEditingLesson}
-  onCancel={closeEditLessonModal}
-  footer={null}
->
-  <Form
-    initialValues={currentLesson}
-    onFinish={handleUpdateLesson}
-  >
-    <Form.Item name="title" label="Title" rules={[{ required: true }]}>
-      <Input />
-    </Form.Item>
-    <Form.Item name="duration" label="Duration (hh:mm:ss)" rules={[{ required: true }]}>
-      <Input />
-    </Form.Item>
 
-    {/* Add Content Field */}
-    <Form.Item name="content" label="Content" rules={[{ required: true }]}>
-      <Input.TextArea />
-    </Form.Item>
+      <Modal
+        title="Edit Lesson"
+        visible={isEditingLesson}
+        onCancel={closeEditLessonModal}
+        footer={null}
+      >
+        <Form
+          initialValues={currentLesson}
+          onFinish={handleUpdateLesson}
+        >
+          <Form.Item name="title" label="Title" rules={[{ required: true }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item name="duration" label="Duration (hh:mm:ss)" rules={[{ required: true }]}>
+            <Input />
+          </Form.Item>
 
-    {/* Add Type Field */}
-    <Form.Item name="type" label="Lesson Type" rules={[{ required: true }]}>
-      <Select defaultValue={currentLesson?.type} onChange={value => setCurrentLesson(prevState => ({ ...prevState, type: value }))}>
-        <Option value="video">Video</Option>
-        <Option value="article">Article</Option>
-        <Option value="quiz">Quiz</Option>
-        <Option value="document">Document</Option>
-      </Select>
-    </Form.Item>
+          {/* Add Content Field */}
+          <Form.Item name="content" label="Content" rules={[{ required: true }]}>
+            <Input.TextArea />
+          </Form.Item>
 
-    <Form.Item>
-      <Button type="primary" htmlType="submit">
-        Update Lesson
-      </Button>
-    </Form.Item>
-  </Form>
-</Modal>
+          {/* Add Type Field */}
+          <Form.Item name="type" label="Lesson Type" rules={[{ required: true }]}>
+            <Select defaultValue={currentLesson?.type} onChange={value => setCurrentLesson(prevState => ({ ...prevState, type: value }))}>
+              <Option value="video">Video</Option>
+              <Option value="article">Article</Option>
+              <Option value="quiz">Quiz</Option>
+              <Option value="document">Document</Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item>
+            <Button type="primary" htmlType="submit">
+              Update Lesson
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
 
     </Layout>
   );

@@ -5,8 +5,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass, faCaretDown } from '@fortawesome/free-solid-svg-icons';
 import './Navbar.css';
 
-const Navbar = () => {
+const Navbar = ({courses}) => {
     const [username, setUsername] = useState(""); // Khởi tạo state cho username
+    const [searchQuery, setSearchQuery] = useState("");
+    // const [searchResults, setSearchResults] = useState([]);
     const navigate = useNavigate();
 
     // Gọi API để lấy thông tin người dùng
@@ -50,6 +52,19 @@ const Navbar = () => {
         navigate("/"); // Điều hướng đến trang đăng nhập
     };
 
+    const handleSearchChange = (e) => {
+        const query = e.target.value;
+        setSearchQuery(query);
+
+        if (query.trim()) {
+            const results = courses.filter(course =>
+                course.title.toLowerCase().includes(query.toLowerCase())
+            );
+            navigate("/list-courses", { state: { searchResults: results } });
+        }
+    };
+
+
     const menu = (
         <Menu>
             <Menu.Item key="1" onClick={handleProfileClick}>
@@ -64,19 +79,31 @@ const Navbar = () => {
     return (
         <nav className="navbar">
             <div className="navbar-logo">
-                {/* Thêm logo hoặc các thành phần khác */}
+                {/* Logo */}
             </div>
+            {/* Search */}
             <div className="search">
                 <div className="search-input-container">
-                    <input type="text" placeholder="Search" className="search-input" />
+                    <input
+                        type="text"
+                        placeholder="Search"
+                        className="search-input"
+                        value={searchQuery}
+                        onChange={handleSearchChange}
+                        
+                    />
                 </div>
-                <FontAwesomeIcon icon={faMagnifyingGlass} className="search-icon" />
+                <FontAwesomeIcon
+                    icon={faMagnifyingGlass}
+                    className="search-icon"
+                    onClick={() => handleSearchChange()}
+                    style={{ cursor: 'pointer' }} // Thêm kiểu con trỏ dạng tay khi hover
+                />
             </div>
 
             <div className="user-profile">
                 <Dropdown overlay={menu} trigger={['click']} className="profile-menu">
                     <div onClick={(e) => e.preventDefault()}>
-                        {/* Không cần ảnh nếu không có trường image */}
                         <span className="username">{username || "Guest"}</span>
                         <FontAwesomeIcon icon={faCaretDown} className="dropdown-icon" />
                     </div>

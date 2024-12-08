@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Layout, Row, Col, Pagination } from 'antd';
-import Sidebar from './Sidebar';
+import Sidebar from './Sidebar'; 
 import Navbar from './NavBar';
 import CourseCard from './CourseCard'; // Import the CourseCard component
-import FilterButton from './FilterButton';
 import './CourseLayout.css';
 import ChatBot from './ChatBot';
 
@@ -50,11 +49,6 @@ const CourseLayout = () => {
 
         <Content className="content-course-layout">
           <div className="content-card-parent">
-            <Row className="filter-courses">
-              <Col>
-                <FilterButton />
-              </Col>
-            </Row>
             <Row gutter={[16, 16]}>
               {paginatedCourses.map((course, index) => (
                 <Col key={course.id} span={6}>

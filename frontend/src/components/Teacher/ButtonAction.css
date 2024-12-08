@@ -1,0 +1,21 @@
+/* Style cho div chứa các nút */
+.button-actions{
+    display: flex;               /* Dùng Flexbox để sắp xếp các phần tử theo hàng ngang */
+    gap: 10px;                   /* Khoảng cách giữa các nút */
+    margin-left: 10px;           /* Cách từ bên trái 10px */
+    align-items: center;         /* Căn giữa theo chiều dọc */
+  }
+  
+  /* Nếu bạn muốn style thêm cho các nút thì có thể thêm ở đây */
+  .button-actions.ant-btn {
+    padding: 0 12px;             /* Padding thêm nếu bạn muốn nút có kích thước nhất định */
+    border-radius: 4px;          /* Bo tròn các góc nút */
+    font-size: 14px;             /* Kích thước font chữ của nút */
+  }
+  
+  /* Nếu muốn có hiệu ứng hover cho nút */
+  .button-actions.ant-btn:hover {
+    background-color: #f0f0f0;  /* Màu nền khi hover */
+    border-color: #1890ff;      /* Màu viền khi hover */
+  }
+  

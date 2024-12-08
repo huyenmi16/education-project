@@ -10,10 +10,8 @@ const Quiz = () => {
   const [quizModalVisible, setQuizModalVisible] = useState(false);
   const [courses, setCourses] = useState([]);  // Store courses data
   const [quizForm] = Form.useForm();
-
-
+  const [selectedImage, setSelectedImage] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
-
   const showModal = () => setIsModalVisible(true);
   const closeModal = () => setIsModalVisible(false);
 
@@ -23,18 +21,19 @@ const Quiz = () => {
       name: 'Math Quiz',
       course_id: 1,
       image: 'https://example.com/math-quiz.jpg',
-      duration: 30,  // Thời gian quiz tính bằng phút
-      quiz_time: '2024-12-06T09:00:00Z',
+      duration: '00:30:00', // Định dạng HH:mm:ss để dùng trực tiếp với TimePicker
+      quiz_time: '2024-12-06T09:00', // Định dạng phù hợp với datetime-local
     },
     {
       id: 2,
       name: 'Science Quiz',
       course_id: 2,
       image: 'https://example.com/science-quiz.jpg',
-      duration: 45,
-      quiz_time: '2024-12-07T10:00:00Z',
+      duration: '00:45:00', // Định dạng HH:mm:ss
+      quiz_time: '2024-12-07T10:00', // Định dạng phù hợp với datetime-local
     },
   ];
+  
 
   // Fetch courses from API
   useEffect(() => {
@@ -61,8 +60,15 @@ const Quiz = () => {
     fetchCourses();
   }, []);
 
+
+  const handleImageChange = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setSelectedImage(e.target.files[0]);
+    }
+  };
+
   const handleQuizCreate = (values) => {
-    const { course_id, name, image, duration, quiz_time } = values;
+    const { course_id, name, duration, quiz_time } = values;
 
     // Kiểm tra token trong localStorage
     const token = localStorage.getItem('accessToken');
@@ -77,8 +83,8 @@ const Quiz = () => {
     formData.append('name', name);
 
     // Chỉ thêm image nếu có file ảnh
-    if (image && image[0]) {
-      formData.append('image', image[0]?.originFileObj); // Xử lý tải lên hình ảnh
+    if (selectedImage) {
+      formData.append('image', selectedImage); // Sử dụng trạng thái ảnh
     }
 
     formData.append('duration', duration.format('HH:mm:ss'));
@@ -93,6 +99,7 @@ const Quiz = () => {
     })
     .then(response => {
       message.success('Tạo bộ câu hỏi thành công');
+      setSelectedImage(null);
       setQuizModalVisible(false);
     })
     .catch(error => {
@@ -102,7 +109,6 @@ const Quiz = () => {
 
   return (
     <div>
-      {/* Button to open Quiz creation modal */}
       <Button type="primary" onClick={() => setQuizModalVisible(true)} style={{ margin: '0 8px' }}>
         Tạo Bộ Câu Hỏi
       </Button>
@@ -111,7 +117,6 @@ const Quiz = () => {
         Tạo Câu Hỏi và Câu Trả Lời
       </Button>
      
-      {/* Quiz Creation Modal */}
       <Modal
         title="Tạo Bộ Câu Hỏi"
         visible={quizModalVisible}
@@ -137,7 +142,7 @@ const Quiz = () => {
 
           {/* Image Upload (optional) */}
           <Form.Item name="image" label="Hình Ảnh">
-            <Input type="file" accept="image/*" />
+            <Input type="file" accept="image/*" onChange={handleImageChange}  />
           </Form.Item>
 
           {/* Duration */}
@@ -159,11 +164,11 @@ const Quiz = () => {
       </Modal>
 
       <QuestionFormModal isVisible={isModalVisible} onClose={closeModal} />
-    <div className="quiz-list">
-      {quizzes.map((quiz) => (
-        <QuizCard key={quiz.id} quiz={quiz} />
-      ))}
-    </div>
+      <div className="quiz-list">
+        {quizzes.map((quiz) => (
+          <QuizCard key={quiz.id} quiz={quiz} />
+        ))}
+      </div>
     </div>
   );
 };
