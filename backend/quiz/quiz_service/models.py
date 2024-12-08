@@ -13,7 +13,6 @@ class Quiz(models.Model):
 
 class Question(models.Model):
     quiz = models.ForeignKey(Quiz, related_name='questions', on_delete=models.CASCADE)  # Liên kết đến bộ câu hỏi
-    image = models.ImageField(upload_to='question_images/', null=True, blank=True)  # Hình ảnh
     text = models.CharField(max_length=255)  # Nội dung câu hỏi
     course_id = models.IntegerField()
 

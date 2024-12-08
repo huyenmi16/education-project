@@ -77,7 +77,7 @@ class ListQuizView(APIView):
         # Lấy các câu hỏi từ các khóa học đã đăng ký
         quizs = Quiz.objects.filter(course_id__in=registered_course_ids)
         serializer = QuizSerializer(quizs, many=True)
-        user_id = get_user_id_from_token(request)
+        user_id, role = get_user_id_from_token(request)
         for data in serializer.data:
             quiz_complete = UserQuizCompletion.objects.filter(user_id=user_id, quiz_id=data['id']).first()
             if quiz_complete:
@@ -123,7 +123,10 @@ def get_user_id_from_token(request):
 
     if not user_id:
         return Response({'error': 'Dữ liệu người dùng không hợp lệ'}, status=status.HTTP_401_UNAUTHORIZED)
-    return user_id
+
+    role = user_data.get('role')
+
+    return user_id, role
 
 
 class SubmitQuiz(APIView):
@@ -241,12 +244,6 @@ class ManageQuizView(APIView):
         if role != "lecturer":
             return Response({'error': 'Chỉ giảng viên mới có thể thêm quiz'}, status=status.HTTP_403_FORBIDDEN)
 
-        # Kiểm tra xem khóa học có thuộc về người dùng không
-        # try:
-        #     course = Course.objects.get(id=course_id, created_by=user_id)
-        # except Course.DoesNotExist:
-        #     return Response({'error': 'Không tìm thấy khóa học hoặc bạn không có quyền thêm quiz'}, status=status.HTTP_404_NOT_FOUND)
-
         # Tạo quiz mới
         serializer = QuizSerializer(data=request.data)
         if serializer.is_valid():
@@ -345,40 +342,37 @@ class ManageQuestionView(APIView):
 
     def post(self, request, quiz_id, format=None):
         """Thêm câu hỏi mới cho quiz."""
-        token = request.headers.get('Authorization')
-        if not token:
-            return Response({'error': 'Yêu cầu token xác thực'}, status=status.HTTP_401_UNAUTHORIZED)
-
-        # Gọi API để lấy thông tin người dùng từ token
-        profile_url = "http://127.0.0.1:4000/api/profile/"
-        headers = {'Authorization': token}
-
-        try:
-            response = requests.get(profile_url, headers=headers)
-            response.raise_for_status()  # Gây ra lỗi nếu status code không phải 2xx
-        except requests.exceptions.RequestException as e:
-            return Response({'error': 'Xác thực người dùng thất bại', 'details': str(e)},
-                            status=status.HTTP_401_UNAUTHORIZED)
-
-        user_data = response.json()
-        user_id = user_data.get('id')
-        role = user_data.get('role')
-
+        # xác thực
+        user_id, role = get_user_id_from_token(request)
         if role != "lecturer":
             return Response({'error': 'Chỉ giảng viên mới có thể thêm câu hỏi'}, status=status.HTTP_403_FORBIDDEN)
-
         # Kiểm tra xem quiz có tồn tại không
         try:
             quiz = Quiz.objects.get(id=quiz_id)
         except Quiz.DoesNotExist:
             return Response({'error': 'Không tìm thấy quiz'}, status=status.HTTP_404_NOT_FOUND)
 
-        # Tạo câu hỏi mới
-        serializer = QuestionSerializer(data=request.data)
+        # Kiểm tra câu hỏi trong quiz có tồn tại không
+        question = Question.objects.filter(quiz_id=quiz_id, text=request.data['question']['text']).first()
+        if question:
+            return Response({'error': 'Câu hỏi đã tồn tại'}, status=status.HTTP_404_NOT_FOUND)
+        data = {
+            'text': request.data['question']['text'],
+            'course_id': request.data['question']['course_id'],
+            'options': request.data['options']  # Truyền trực tiếp options từ payload
+        }
+
+        serializer = QuestionSerializer(data=data)
         if serializer.is_valid():
-            serializer.save(quiz=quiz)
-            return Response({'message': 'Câu hỏi được thêm thành công.', 'data': serializer.data},
-                            status=status.HTTP_201_CREATED)
+            # Lưu question với quiz
+            question = serializer.save(quiz=quiz)
+            return Response(
+                {
+                    'message': 'Câu hỏi được thêm thành công.',
+                    'data': QuestionSerializer(question).data
+                },
+                status=status.HTTP_201_CREATED
+            )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
