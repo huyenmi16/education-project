@@ -28,26 +28,26 @@ const Teacher = () => {
         axios.get(`${baseUrl}/api/profile/`, {
             headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
         })
-        .then(response => {
-            setProfileData(response.data);
-        })
-        .catch(() => {
-            message.error('Failed to load profile data');
-        });
+            .then(response => {
+                setProfileData(response.data);
+            })
+            .catch(() => {
+                message.error('Failed to load profile data');
+            });
     }, []);
 
     const handleUpdateProfile = (values) => {
         axios.put(`${baseUrl}/api/update-profile/`, values, {
             headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
         })
-        .then(response => {
-            setProfileData(response.data);
-            setIsEditing(false);
-            message.success('Profile updated successfully');
-        })
-        .catch(() => {
-            message.error('Failed to update profile');
-        });
+            .then(response => {
+                setProfileData(response.data);
+                setIsEditing(false);
+                message.success('Profile updated successfully');
+            })
+            .catch(() => {
+                message.error('Failed to update profile');
+            });
     };
 
     const handleChangePassword = (values) => {
@@ -59,14 +59,14 @@ const Teacher = () => {
         axios.post(`${baseUrl}/api/change-password/`, values, {
             headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
         })
-        .then(() => {
-            setIsChangingPassword(false);
-            message.success('Password changed successfully');
-            passwordForm.resetFields();
-        })
-        .catch((error) => {
-            message.error(error.response?.data?.message || 'Failed to change password');
-        });
+            .then(() => {
+                setIsChangingPassword(false);
+                message.success('Password changed successfully');
+                passwordForm.resetFields();
+            })
+            .catch((error) => {
+                message.error(error.response?.data?.message || 'Failed to change password');
+            });
     };
 
     const handleImageUpload = (options) => {
@@ -80,13 +80,13 @@ const Teacher = () => {
                 'Content-Type': 'multipart/form-data',
             },
         })
-        .then(response => {
-            setProfileData(prev => ({ ...prev, image: response.data.image }));
-            message.success('Image uploaded successfully');
-        })
-        .catch(() => {
-            message.error('Failed to upload image');
-        });
+            .then(response => {
+                setProfileData(prev => ({ ...prev, image: response.data.image }));
+                message.success('Image uploaded successfully');
+            })
+            .catch(() => {
+                message.error('Failed to upload image');
+            });
     };
 
     const handleCertificateUpload = (options) => {
@@ -100,46 +100,46 @@ const Teacher = () => {
                 'Content-Type': 'multipart/form-data',
             },
         })
-        .then(response => {
-            setProfileData(prev => ({ ...prev, image_certificate: response.data.image_certificate }));
-            message.success('Certificate uploaded successfully');
-        })
-        .catch(() => {
-            message.error('Failed to upload certificate');
-        });
+            .then(response => {
+                setProfileData(prev => ({ ...prev, image_certificate: response.data.image_certificate }));
+                message.success('Certificate uploaded successfully');
+            })
+            .catch(() => {
+                message.error('Failed to upload certificate');
+            });
     };
 
     return (
         <Layout style={{ minHeight: '80vh' }}>
             <Content style={{ padding: '20px', margin: 'auto', maxWidth: '1220px' }}>
-            <Card
+                <Card
                     title="Profile"
                     bordered={false}
-                    style={{ width: '170vh',height:'74vh' }}
+                    style={{ width: '170vh', height: '74vh' }}
                     extra={
                         <>
-                            <EditOutlined 
+                            <EditOutlined
                                 onClick={() => {
                                     form.setFieldsValue(profileData);
                                     setIsEditing(true);
-                                }} 
-                                style={{ fontSize: '20px', color: '#1890ff', cursor: 'pointer' }} 
+                                }}
+                                style={{ fontSize: '20px', color: '#1890ff', cursor: 'pointer' }}
                             />
-                            <LockOutlined 
-                                onClick={() => setIsChangingPassword(true)} 
-                                style={{ fontSize: '20px', color: '#1890ff', cursor: 'pointer', marginLeft: '15px' }} 
+                            <LockOutlined
+                                onClick={() => setIsChangingPassword(true)}
+                                style={{ fontSize: '20px', color: '#1890ff', cursor: 'pointer', marginLeft: '15px' }}
                             />
                         </>
                     }
                 >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',marginTop:'100px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: '100px' }}>
                         <div style={{ flex: 1 }}>
                             <p><strong>Username:</strong> {profileData.username}</p>
                             <p><strong>Email:</strong> {profileData.email}</p>
                             <p><strong>Personal Email:</strong> {profileData.personal_email}</p>
                             <p><strong>Phone Number:</strong> {profileData.phone_number}</p>
                             <p><strong>Address:</strong> {profileData.address}</p>
-                            
+
                             {profileData.image_certificate && (
                                 <p>
                                     <a
@@ -169,7 +169,7 @@ const Teacher = () => {
                             </div>
                         )}
                     </div>
-            </Card>
+                </Card>
 
 
                 {/* Edit Profile Modal */}
@@ -179,23 +179,23 @@ const Teacher = () => {
                     onCancel={() => setIsEditing(false)}
                     footer={null}
                 >
-                    <Form 
+                    <Form
                         form={form}
                         layout="vertical"
                         onFinish={(values) => {
                             handleUpdateProfile(values);
                         }}
                     >
-                        <Form.Item 
-                            name="username" 
+                        <Form.Item
+                            name="username"
                             label="Username"
                             rules={[{ required: true, message: 'Please input your username!' }]}
                         >
                             <Input prefix={<UserOutlined />} />
                         </Form.Item>
-                        
-                        <Form.Item 
-                            name="email" 
+
+                        <Form.Item
+                            name="email"
                             label="Email"
                             rules={[
                                 { required: true, message: 'Please input your email!' },
@@ -204,9 +204,9 @@ const Teacher = () => {
                         >
                             <Input prefix={<MailOutlined />} />
                         </Form.Item>
-                        
-                        <Form.Item 
-                            name="personal_email" 
+
+                        <Form.Item
+                            name="personal_email"
                             label="Personal Email"
                             rules={[
                                 { type: 'email', message: 'Please enter a valid email!' }
@@ -214,41 +214,41 @@ const Teacher = () => {
                         >
                             <Input prefix={<MailOutlined />} />
                         </Form.Item>
-                        
-                        <Form.Item 
-                            name="phone_number" 
+
+                        <Form.Item
+                            name="phone_number"
                             label="Phone Number"
                         >
                             <Input prefix={<PhoneOutlined />} />
                         </Form.Item>
-                        
-                        <Form.Item 
-                            name="address" 
+
+                        <Form.Item
+                            name="address"
                             label="Address"
                         >
                             <Input prefix={<HomeOutlined />} />
                         </Form.Item>
-                        
+
                         <Form.Item name="image" label="Profile Image">
-                            <Upload 
-                                customRequest={handleImageUpload} 
+                            <Upload
+                                customRequest={handleImageUpload}
                                 showUploadList={false}
                                 maxCount={1}
                             >
                                 <Button icon={<UploadOutlined />}>Upload Profile Image</Button>
                             </Upload>
                         </Form.Item>
-                        
+
                         <Form.Item name="image_certificate" label="Certificate">
-                            <Upload 
-                                customRequest={handleCertificateUpload} 
+                            <Upload
+                                customRequest={handleCertificateUpload}
                                 showUploadList={false}
                                 maxCount={1}
                             >
                                 <Button icon={<UploadOutlined />}>Upload Certificate</Button>
                             </Upload>
                         </Form.Item>
-                        
+
                         <Form.Item>
                             <Button type="primary" htmlType="submit" block>
                                 Save Changes
@@ -264,7 +264,7 @@ const Teacher = () => {
                     onCancel={() => setIsChangingPassword(false)}
                     footer={null}
                 >
-                    <Form 
+                    <Form
                         form={passwordForm}
                         layout="vertical"
                         onFinish={handleChangePassword}
@@ -276,7 +276,7 @@ const Teacher = () => {
                         >
                             <Input.Password prefix={<LockOutlined />} />
                         </Form.Item>
-                        
+
                         <Form.Item
                             name="new_password"
                             label="New Password"
@@ -287,7 +287,7 @@ const Teacher = () => {
                         >
                             <Input.Password prefix={<LockOutlined />} />
                         </Form.Item>
-                        
+
                         <Form.Item
                             name="confirm_new_password"
                             label="Confirm New Password"
@@ -306,7 +306,7 @@ const Teacher = () => {
                         >
                             <Input.Password prefix={<LockOutlined />} />
                         </Form.Item>
-                        
+
                         <Form.Item>
                             <Button type="primary" htmlType="submit" block>
                                 Change Password

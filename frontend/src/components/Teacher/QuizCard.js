@@ -9,7 +9,7 @@ import axios from 'axios';
 
 const { confirm } = Modal;
 
-const QuizCard = ({ quiz,updateQuizzes }) => {
+const QuizCard = ({ quiz, updateQuizzes }) => {
   const navigate = useNavigate();
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [editForm] = Form.useForm();
@@ -24,7 +24,7 @@ const QuizCard = ({ quiz,updateQuizzes }) => {
     editForm.setFieldsValue({
       name: quiz.name,
       duration: quiz.duration ? moment(quiz.duration, 'HH:mm:ss') : null,
-      quiz_time: quiz.quiz_time ? moment(quiz.quiz_time).format('YYYY-MM-DDTHH:mm:ss') : null,
+      quiz_time: quiz.quiz_time ? moment(quiz.quiz_time, "HH:mm:ss DD/MM/YYYY").format('YYYY-MM-DDTHH:mm:ss') : null,
       image: quiz.image || ''
     });
   };
@@ -58,12 +58,12 @@ const QuizCard = ({ quiz,updateQuizzes }) => {
         // Fetch the existing image URL
         const response = await fetch(quiz.image);
         const blob = await response.blob();
-  
+
         // Get the file extension based on the MIME type of the blob
         const mimeType = blob.type.split('/')[1]; // Get the file type (e.g., 'jpeg', 'png')
         const validExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp']; // List of supported extensions
         const extension = validExtensions.includes(mimeType) ? mimeType : 'jpg'; // Default to 'jpg' if invalid extension
-  
+
         // Create the image file using the correct extension
         const imageFile = new File([blob], `quiz-image.${extension}`, { type: blob.type });
         formData.append('image', imageFile); // Append the image as binary data
@@ -137,7 +137,7 @@ const QuizCard = ({ quiz,updateQuizzes }) => {
         <h3>{quiz.name}</h3>
         <p>Course: {quiz.course_name}</p>
         <p>Duration: {quiz.duration} minutes</p>
-        <p>Quiz Time: {new Date(quiz.quiz_time).toLocaleString()}</p>
+        <p>Quiz Time: {quiz.quiz_time}</p>
       </div>
 
       <div className="button-actions">
@@ -194,11 +194,7 @@ const QuizCard = ({ quiz,updateQuizzes }) => {
               accept="image/*"
               onChange={({ file }) => handleImageChange(file)}
             >
-              {uploadedFile ? (
-                <img src={URL.createObjectURL(uploadedFile)} alt="image" style={{ width: '100%' }} />
-              ) : (
-                <PlusOutlined />
-              )}
+              <PlusOutlined />
             </Upload>
           </Form.Item>
 

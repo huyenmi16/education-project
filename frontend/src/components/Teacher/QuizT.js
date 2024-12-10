@@ -32,6 +32,12 @@ const Quiz = () => {
         },
       });
 
+      if (!Array.isArray(response.data)) {
+        setQuizzes([]); // Set empty array nếu không có dữ liệu
+        return;
+      }
+
+
       const formattedQuizzes = response.data.map(quiz => ({
         id: quiz.id,
         name: quiz.name,
