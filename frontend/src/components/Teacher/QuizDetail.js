@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
-import { Layout, Row, Col, Collapse, Button, Modal, Form, Input, message, Upload, Space, Card, Typography } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Layout, Row, Col, Collapse, Button, Modal, Form, Input, message, Upload, Space, Card, Typography, Checkbox } from 'antd';
 import {
   EditOutlined, DeleteOutlined, PlusOutlined,
   QuestionCircleOutlined, ClockCircleOutlined,
   BookOutlined, CalendarOutlined, FileImageOutlined
 } from '@ant-design/icons';
 import { useLocation } from 'react-router-dom';
+import axios from 'axios';
+
 
 const { Content } = Layout;
 const { Panel } = Collapse;
@@ -13,11 +15,37 @@ const { Title, Text } = Typography;
 
 const QuizDetail = () => {
   const location = useLocation();
-  const quiz = location.state?.quiz;
+  const quiz_id = location.state?.quiz?.id;
   const [activeKeys, setActiveKeys] = useState([]);
   const [isQuestionModalVisible, setIsQuestionModalVisible] = useState(false);
   const [questionForm] = Form.useForm();
   const [editingQuestion, setEditingQuestion] = useState(null);
+  const [quiz, setQuiz] = useState(null);
+
+  const fetchQuestions = async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await axios.get('http://127.0.0.1:5000/api/get-all-quiz/', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const foundQuiz = response.data.find(quiz => quiz.id === quiz_id);
+      if (foundQuiz) {
+        foundQuiz.image = `http://127.0.0.1:5000${foundQuiz.image}`
+        setQuiz(foundQuiz);
+      }
+
+    } catch (error) {
+      message.error('Không thể tải danh sách câu hỏi');
+    }
+  };
+
+  // Gọi API khi component mount
+  useEffect(() => {
+    fetchQuestions();
+  }, [quiz_id]);
+
 
   // Modal thêm/sửa câu hỏi
   const showQuestionModal = (question = null) => {
@@ -25,7 +53,11 @@ const QuizDetail = () => {
     if (question) {
       questionForm.setFieldsValue({
         text: question.text,
-        options: question.options
+        options: question.options.map(option => ({
+          text: option.text,
+          is_correct: option.is_correct
+        }))
+
       });
     } else {
       questionForm.resetFields();
@@ -36,6 +68,7 @@ const QuizDetail = () => {
   const handleQuestionSubmit = async (values) => {
     try {
       // API call để thêm/sửa câu hỏi
+
       message.success(`${editingQuestion ? 'Sửa' : 'Thêm'} câu hỏi thành công!`);
       setIsQuestionModalVisible(false);
     } catch (error) {
@@ -44,12 +77,19 @@ const QuizDetail = () => {
   };
 
   const handleDeleteQuestion = (questionId) => {
+    console.log('questionId: ', questionId)
     Modal.confirm({
       title: 'Xác nhận xóa câu hỏi?',
       content: 'Hành động này không thể hoàn tác',
       onOk: async () => {
         try {
           // API call để xóa câu hỏi
+          const token = localStorage.getItem('accessToken');
+          const response = await axios.delete(`http://127.0.0.1:5000/api/questions/${questionId}/`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          message.success(response.data.message || 'Câu hỏi đã được xóa thành công!');
+          fetchQuestions();
           message.success('Xóa câu hỏi thành công!');
         } catch (error) {
           message.error('Có lỗi xảy ra!');
@@ -59,6 +99,7 @@ const QuizDetail = () => {
   };
 
   return (
+    console.log('location.state.quiz: ', location.state.quiz),
     <Layout style={{ minHeight: '100vh', background: '#f0f2f5' }}>
       <Content style={{ padding: '24px' }}>
         <Card>
@@ -89,7 +130,6 @@ const QuizDetail = () => {
                 </Space>
               </Space>
             </Col>
-
             <Col xs={24} sm={8} md={8} lg={8}>
               {quiz && quiz.image && <img src={quiz.image} style={{ width: '60%' }} />}
             </Col>
@@ -101,9 +141,6 @@ const QuizDetail = () => {
               <Title level={3}>
                 <QuestionCircleOutlined /> Danh sách câu hỏi
               </Title>
-              <Button type="primary" icon={<PlusOutlined />} onClick={() => showQuestionModal()}>
-                Thêm câu hỏi
-              </Button>
             </div>
 
             <Collapse activeKey={activeKeys} onChange={setActiveKeys}>
@@ -148,11 +185,7 @@ const QuizDetail = () => {
                         }}
                       >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <Text>{`${String.fromCharCode(65 + index)}. ${option.text}`}</Text>
-                          <Space>
-                            <Button icon={<EditOutlined />} size="small" />
-                            <Button danger icon={<DeleteOutlined />} size="small" />
-                          </Space>
+                          <Text>{`${option.text}`}</Text>
                         </div>
                       </Card>
                     ))}
@@ -179,15 +212,6 @@ const QuizDetail = () => {
               <Input.TextArea />
             </Form.Item>
 
-            <Form.Item name="image" label="Hình ảnh">
-              <Upload
-                listType="picture-card"
-                maxCount={1}
-                beforeUpload={() => false}
-              >
-                <PlusOutlined />
-              </Upload>
-            </Form.Item>
 
             <Form.List name="options">
               {(fields, { add, remove }) => (
@@ -198,8 +222,24 @@ const QuizDetail = () => {
                         {...field}
                         label={`Câu trả lời ${index + 1}`}
                         required
+                        name={[field.name, 'text']}
+                        style={{ width: '100%' }}
                       >
-                        <Input placeholder="Nội dung câu trả lời" />
+                        <Input
+                          placeholder="Nội dung câu trả lời"
+                          style={{
+                            width: '100%',
+                            minWidth: '300px', // Độ rộng tối thiểu
+                            minHeight: '40px'  // Chiều cao tối thiểu
+                          }}
+                        />
+                      </Form.Item>
+                      <Form.Item
+                        {...field}
+                        name={[field.name, 'is_correct']}
+                        valuePropName="checked"
+                      >
+                        <Checkbox>Đáp án đúng</Checkbox>
                       </Form.Item>
                       <DeleteOutlined onClick={() => remove(field.name)} />
                     </Space>

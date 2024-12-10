@@ -197,7 +197,7 @@ class CheckSubmit(APIView):
 
 class ManageQuizView(APIView):
 
-    def post(self, request, course_id, format=None): # tạo bộ câu hỏi
+    def post(self, request, course_id, format=None):  # tạo bộ câu hỏi
         user_id, role = get_user_id_from_token(request)
 
         if role != "lecturer":
@@ -216,7 +216,7 @@ class ManageQuizView(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def get(self, request, course_id, format=None): # lấy bộ câu hỏi theo course trong form tạo câu hỏi - câu trả lời
+    def get(self, request, course_id, format=None):  # lấy bộ câu hỏi theo course trong form tạo câu hỏi - câu trả lời
         user_id, role = get_user_id_from_token(request)
 
         if role != "lecturer":
@@ -288,7 +288,7 @@ class ManageQuizSetView(APIView):
         except requests.exceptions.RequestException as e:
             return None
 
-    def get(self, request, format=None): #get all bộ quizz để hiển thị trong trang quizz
+    def get(self, request, format=None):  # get all bộ quizz để hiển thị trong trang quizz
         user_id, role = get_user_id_from_token(request)
 
         # Chỉ cho phép giảng viên truy cập
@@ -314,8 +314,7 @@ class ManageQuizSetView(APIView):
                 if data['course_id'] == course['id']:
                     data['course_name'] = course['title']
                     break
-        return Response(serializer.data, status=status.HTTP_200_OK) #  3
-
+        return Response(serializer.data, status=status.HTTP_200_OK)  # 3
 
 
 class ManageQuestionView(APIView):
@@ -379,79 +378,16 @@ class ManageQuestionView(APIView):
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, quiz_id, question_id, format=None):
+    def delete(self, request, question_id, format=None):
         """Xóa câu hỏi."""
         user_id, role = get_user_id_from_token(request)
         if role != "lecturer":
             return Response({'error': 'Chỉ giảng viên mới có thể xóa câu hỏi'}, status=status.HTTP_403_FORBIDDEN)
 
         try:
-            question = Question.objects.get(id=question_id, quiz_id=quiz_id)
+            question = Question.objects.get(id=question_id)
         except Question.DoesNotExist:
             return Response({'error': 'Không tìm thấy câu hỏi'}, status=status.HTTP_404_NOT_FOUND)
 
         question.delete()
         return Response({'message': 'Câu hỏi đã được xóa thành công'}, status=status.HTTP_200_OK)
-
-
-
-
-class ManageOptionView(APIView):
-
-    def post(self, request, question_id, format=None):
-        """Thêm đáp án mới cho câu hỏi."""
-        user_id, role = get_user_id_from_token(request)
-
-        if role != "lecturer":
-            return Response({'error': 'Chỉ giảng viên mới có thể thêm đáp án'}, status=status.HTTP_403_FORBIDDEN)
-
-        # Kiểm tra xem câu hỏi có tồn tại không
-        try:
-            question = Question.objects.get(id=question_id)
-        except Question.DoesNotExist:
-            return Response({'error': 'Không tìm thấy câu hỏi'}, status=status.HTTP_404_NOT_FOUND)
-
-        # Tạo đáp án mới
-        serializer = OptionSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(question=question)
-            return Response({'message': 'Đáp án được thêm thành công.', 'data': serializer.data},
-                            status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-    def put(self, request, question_id, option_id, format=None):
-        """Cập nhật đáp án."""
-        user_id, role = get_user_id_from_token(request)
-
-        if role != "lecturer":
-            return Response({'error': 'Chỉ giảng viên mới có thể cập nhật đáp án'}, status=status.HTTP_403_FORBIDDEN)
-
-        try:
-            option = Option.objects.get(id=option_id, question_id=question_id)
-        except Option.DoesNotExist:
-            return Response({'error': 'Không tìm thấy đáp án'}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = OptionSerializer(option, data=request.data, partial=True)
-        if serializer.is_valid():
-            option = serializer.save()
-            return Response({'message': 'Đáp án đã được cập nhật thành công.', 'data': serializer.data},
-                            status=status.HTTP_200_OK)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, question_id, option_id, format=None):
-        """Xóa đáp án."""
-        user_id, role = get_user_id_from_token(request)
-
-        if role != "lecturer":
-            return Response({'error': 'Chỉ giảng viên mới có thể xóa đáp án'}, status=status.HTTP_403_FORBIDDEN)
-
-        try:
-            option = Option.objects.get(id=option_id, question_id=question_id)
-        except Option.DoesNotExist:
-            return Response({'error': 'Không tìm thấy đáp án'}, status=status.HTTP_404_NOT_FOUND)
-
-        option.delete()
-        return Response({'message': 'Đáp án đã được xóa thành công'}, status=status.HTTP_200_OK)
