@@ -19,9 +19,16 @@ urlpatterns = [
     path('get-all-quiz/', ManageQuizSetView.as_view(), name='get-all-quiz-by-teacher'),
     # hiển thị tất cả bộ quizz nv duy nhất
 
-    path('quiz/<int:quiz_id>/questions/', ManageQuestionView.as_view(), name='add_question'),
-    # For adding questions to a quiz
-    path('question/<int:question_id>/options/', ManageOptionView.as_view(), name='add_option'),
-    # For adding options to a question
+    path('quiz/<int:quiz_id>/questions/', ManageQuestionView.as_view(), name='add_question'), # POST QUESTION
+    path('quiz/<int:quiz_id>/questions/<int:question_id>/update/', ManageQuestionView.as_view(),
+         name='manage_question_update'), #PUT
+    path('quiz/<int:quiz_id>/questions/<int:question_id>/delete/', ManageQuestionView.as_view(),
+         name='manage_question_delete'), #DELETE
+
+    path('question/<int:question_id>/options/', ManageOptionView.as_view(), name='add_option'), #POST OPTION
+    path('questions/<int:question_id>/options/<int:option_id>/update/', ManageOptionView.as_view(),
+         name='manage_option_update'),  # PUT
+    path('questions/<int:question_id>/options/<int:option_id>/delete/', ManageOptionView.as_view(),
+         name='manage_option_delete'),  # DELETE
 
 ]

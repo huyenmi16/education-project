@@ -46,7 +46,8 @@ const Quiz = () => {
         quiz_time: new Date(quiz.quiz_time).toLocaleString(),
         course_name: quiz.course_name,
         course_id: quiz.course_id,
-        questions: quiz.questions
+        questions: quiz.questions,
+        options: quiz.options
       }));
 
       setQuizzes(formattedQuizzes);
