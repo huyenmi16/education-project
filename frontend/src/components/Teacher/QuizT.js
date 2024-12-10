@@ -39,6 +39,8 @@ const Quiz = () => {
         duration: quiz.duration,
         quiz_time: new Date(quiz.quiz_time).toLocaleString(),
         course_name: quiz.course_name,
+        course_id: quiz.course_id,
+        questions: quiz.questions
       }));
 
       setQuizzes(formattedQuizzes);
@@ -113,10 +115,10 @@ const Quiz = () => {
       });
 
       message.success('Tạo bộ câu hỏi thành công');
-      
+
       // Refresh quizzes after successful creation
       await fetchQuizzes();
-      
+
       setSelectedImage(null);
       setQuizModalVisible(false);
       quizForm.resetFields();
@@ -141,7 +143,7 @@ const Quiz = () => {
       <Button type="primary" style={{ margin: '0 8px' }} onClick={showModal}>
         Tạo Câu Hỏi và Câu Trả Lời
       </Button>
-     
+
       <Modal
         title="Tạo Bộ Câu Hỏi"
         visible={quizModalVisible}
@@ -187,7 +189,7 @@ const Quiz = () => {
 
       <div className="quiz-list">
         {currentQuizzes.map((quiz) => (
-          <QuizCard key={quiz.id} quiz={quiz} />
+          <QuizCard key={quiz.id} quiz={quiz} updateQuizzes={fetchQuizzes} />
         ))}
       </div>
 

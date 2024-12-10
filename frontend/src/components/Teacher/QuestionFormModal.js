@@ -59,7 +59,7 @@ const QuestionFormModal = ({ isVisible, onClose }) => {
       }
 
       try {
-        const response = await axios.get(`http://127.0.0.1:5000/api/all-quiz/${selectedCourse}/`, {
+        const response = await axios.get(`http://127.0.0.1:5000/api/quiz/get-by-course/${selectedCourse}/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         console.log("Quizzes API Response:", response.data); // Kiểm tra dữ liệu trả về

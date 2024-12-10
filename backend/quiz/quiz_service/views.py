@@ -2,10 +2,38 @@ import requests
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Question, Quiz, UserQuizCompletion
+from .models import Question, Quiz, UserQuizCompletion, Option
 from .serializers import QuestionSerializer, QuizSerializer, QuizCompletionSerializer, OptionSerializer
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+
+
+def get_user_id_from_token(request):
+    token = request.headers.get('Authorization')
+    if not token:
+        return Response({'error': 'Yêu cầu token xác thực'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    # Gọi API để lấy thông tin người dùng từ token
+    profile_url = "http://127.0.0.1:4000/api/profile/"
+    headers = {'Authorization': token}
+
+    try:
+        response = requests.get(profile_url, headers=headers)
+        response.raise_for_status()  # Gây ra lỗi nếu status code không phải 2xx
+    except requests.exceptions.RequestException as e:
+        return Response({'error': 'Xác thực người dùng thất bại', 'details': str(e)},
+                        status=status.HTTP_401_UNAUTHORIZED)
+
+    # Lấy dữ liệu người dùng từ response
+    user_data = response.json()
+    user_id = user_data.get('id')
+
+    if not user_id:
+        return Response({'error': 'Dữ liệu người dùng không hợp lệ'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    role = user_data.get('role')
+
+    return user_id, role
 
 
 class QuestionCreateView(APIView):
@@ -101,34 +129,6 @@ class DetailQuiz(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-def get_user_id_from_token(request):
-    token = request.headers.get('Authorization')
-    if not token:
-        return Response({'error': 'Yêu cầu token xác thực'}, status=status.HTTP_401_UNAUTHORIZED)
-
-    # Gọi API để lấy thông tin người dùng từ token
-    profile_url = "http://127.0.0.1:4000/api/profile/"
-    headers = {'Authorization': token}
-
-    try:
-        response = requests.get(profile_url, headers=headers)
-        response.raise_for_status()  # Gây ra lỗi nếu status code không phải 2xx
-    except requests.exceptions.RequestException as e:
-        return Response({'error': 'Xác thực người dùng thất bại', 'details': str(e)},
-                        status=status.HTTP_401_UNAUTHORIZED)
-
-    # Lấy dữ liệu người dùng từ response
-    user_data = response.json()
-    user_id = user_data.get('id')
-
-    if not user_id:
-        return Response({'error': 'Dữ liệu người dùng không hợp lệ'}, status=status.HTTP_401_UNAUTHORIZED)
-
-    role = user_data.get('role')
-
-    return user_id, role
-
-
 class SubmitQuiz(APIView):
     def post(self, request, quiz_id):
         user_id, role = get_user_id_from_token(request)
@@ -196,49 +196,12 @@ class CheckSubmit(APIView):
 
 
 class ManageQuizView(APIView):
-    def get_user_info(self, token):
-        """Helper method to fetch user information from profile API."""
-        profile_url = "http://127.0.0.1:4000/api/profile/"
-        headers = {'Authorization': token}
-        try:
-            response = requests.get(profile_url, headers=headers)
-            response.raise_for_status()
-            return response.json()
-        except requests.exceptions.RequestException:
-            return None
 
-    def get_approved_courses(self, token):
-        """Helper method to fetch approved courses using external API."""
-        courses_url = "http://127.0.0.1:8000/api/all-courses/"
-        headers = {'Authorization': token}
-        try:
-            response = requests.get(courses_url, headers=headers)
-            response.raise_for_status()
-            return response.json()  # Assumes the API returns a list of courses
-        except requests.exceptions.RequestException as e:
-            return None
-
-    def post(self, request, course_id, format=None):
-        """Thêm quiz mới."""
-        token = request.headers.get('Authorization')
-        if not token:
-            return Response({'error': 'Yêu cầu token xác thực'}, status=status.HTTP_401_UNAUTHORIZED)
-
-        user_data = self.get_user_info(token)
-        if not user_data:
-            return Response({'error': 'Xác thực người dùng thất bại'}, status=status.HTTP_401_UNAUTHORIZED)
-
-        user_id = user_data.get('id')
-        role = user_data.get('role')
+    def post(self, request, course_id, format=None): # tạo bộ câu hỏi
+        user_id, role = get_user_id_from_token(request)
 
         if role != "lecturer":
             return Response({'error': 'Chỉ giảng viên mới có thể thêm quiz'}, status=status.HTTP_403_FORBIDDEN)
-
-        # Kiểm tra xem khóa học có thuộc về người dùng không
-        # try:
-        #     course = Course.objects.get(id=course_id, created_by=user_id)
-        # except Course.DoesNotExist:
-        #     return Response({'error': 'Không tìm thấy khóa học hoặc bạn không có quyền thêm quiz'}, status=status.HTTP_404_NOT_FOUND)
 
         existing_quiz = Quiz.objects.filter(course_id=course_id, name=request.data.get('name')).exists()
         if existing_quiz:
@@ -253,30 +216,87 @@ class ManageQuizView(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    # Lấy ra bộ câu hỏi của các khóa học giảng viên phê duyệt
-    def get(self, request, format=None):
-        # Lấy token từ headers
-        token = request.headers.get('Authorization')
-        if not token:
-            return Response({'error': 'Yêu cầu token xác thực'}, status=status.HTTP_401_UNAUTHORIZED)
+    def get(self, request, course_id, format=None): # lấy bộ câu hỏi theo course trong form tạo câu hỏi - câu trả lời
+        user_id, role = get_user_id_from_token(request)
 
-        # Lấy thông tin người dùng
-        user_data = self.get_user_info(token)
-        if not user_data:
-            return Response({'error': 'Xác thực người dùng thất bại'}, status=status.HTTP_401_UNAUTHORIZED)
+        if role != "lecturer":
+            return Response({'error': 'Only lecturers can view quizzes for their courses'},
+                            status=status.HTTP_403_FORBIDDEN)
 
-        user_id = user_data.get('id')
-        role = user_data.get('role')
+        # Fetch all quizzes for the course
+        quizzes = Quiz.objects.filter(course_id=course_id)
+        serializer = QuizSerializer(quizzes, many=True)
+        return Response({'message': 'Quizzes retrieved successfully', 'data': serializer.data},
+                        status=status.HTTP_200_OK)
 
-        if not user_id or not role:
-            return Response({'error': 'Dữ liệu người dùng không hợp lệ'}, status=status.HTTP_401_UNAUTHORIZED)
+    def put(self, request, quiz_id, format=None):
+        """
+        Sửa thông tin của một quiz.
+        """
+        user_id, role = get_user_id_from_token(request)
+
+        # Chỉ cho phép giảng viên truy cập
+        if role != 'lecturer':
+            return Response({'error': 'Bạn không có quyền xem danh sách quiz'}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            quiz = Quiz.objects.get(id=quiz_id)
+        except Quiz.DoesNotExist:
+            return Response({'error': 'Không tìm thấy quiz.'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = QuizSerializer(quiz, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': 'Quiz đã được cập nhật thành công.', 'data': serializer.data},
+                            status=status.HTTP_200_OK)
+
+        return Response({'error': 'Dữ liệu không hợp lệ', 'details': serializer.errors},
+                        status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, quiz_id, format=None):
+        user_id, role = get_user_id_from_token(request)
+
+        # Chỉ cho phép giảng viên truy cập
+        if role != 'lecturer':
+            return Response({'error': 'Bạn không có quyền xem danh sách quiz'}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            quiz = Quiz.objects.get(id=quiz_id)
+        except Quiz.DoesNotExist:
+            return Response({'error': 'Không tìm thấy quiz'}, status=status.HTTP_404_NOT_FOUND)
+
+        questions = Question.objects.filter(quiz_id=quiz_id)
+        if questions.exists():
+            for question in questions:
+                Option.objects.filter(question=question).delete()  # Delete all options
+                question.delete()  # Delete the question
+
+        quiz.delete()  # Delete the quiz
+        return Response({'message': 'Quiz, câu hỏi và đáp án (nếu có) đã được xóa thành công.'},
+                        status=status.HTTP_200_OK)
+
+
+class ManageQuizSetView(APIView):
+    def get_approved_courses(self, token):
+        """Helper method to fetch approved courses using external API."""
+        courses_url = "http://127.0.0.1:8000/api/all-courses/"
+        headers = {'Authorization': token}
+        try:
+            response = requests.get(courses_url, headers=headers)
+            response.raise_for_status()
+            return response.json()  # Assumes the API returns a list of courses
+        except requests.exceptions.RequestException as e:
+            return None
+
+    def get(self, request, format=None): #get all bộ quizz để hiển thị trong trang quizz
+        user_id, role = get_user_id_from_token(request)
 
         # Chỉ cho phép giảng viên truy cập
         if role != 'lecturer':
             return Response({'error': 'Bạn không có quyền xem danh sách quiz'}, status=status.HTTP_403_FORBIDDEN)
 
         # Lấy danh sách khóa học từ API
-        approved_courses = self.get_approved_courses(token)
+        approved_courses = self.get_approved_courses(request.headers.get('Authorization'))
         if not approved_courses:
             return Response({'message': 'Không thể lấy danh sách khóa học từ API.'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -294,69 +314,8 @@ class ManageQuizView(APIView):
                 if data['course_id'] == course['id']:
                     data['course_name'] = course['title']
                     break
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_200_OK) #  3
 
-
-    def put(self, request, quiz_id, format=None):
-        """Sửa thông tin quiz."""
-        token = request.headers.get('Authorization')
-        if not token:
-            return Response({'error': 'Yêu cầu token xác thực'}, status=status.HTTP_401_UNAUTHORIZED)
-
-        user_data = self.get_user_info(token)
-        if not user_data:
-            return Response({'error': 'Xác thực người dùng thất bại'}, status=status.HTTP_401_UNAUTHORIZED)
-
-        user_id = user_data.get('id')
-        role = user_data.get('role')
-
-        if role != "lecturer":
-            return Response({'error': 'Chỉ giảng viên mới có thể sửa quiz'}, status=status.HTTP_403_FORBIDDEN)
-
-        # Kiểm tra xem quiz có thuộc về khóa học của người dùng không
-        quiz = Quiz.objects.get(id=quiz_id)
-        # try:
-        #     quiz = Quiz.objects.get(id=quiz_id)
-        #     course = Course.objects.get(id=quiz.course_id, created_by=user_id)
-        # except (Quiz.DoesNotExist, Course.DoesNotExist):
-        #     return Response({'error': 'Không tìm thấy quiz hoặc bạn không có quyền sửa'}, status=status.HTTP_404_NOT_FOUND)
-
-        # Cập nhật quiz
-        serializer = QuizSerializer(quiz, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({'message': 'Quiz được cập nhật thành công.', 'data': serializer.data},
-                            status=status.HTTP_200_OK)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, quiz_id, format=None):
-        """Xóa quiz."""
-        token = request.headers.get('Authorization')
-        if not token:
-            return Response({'error': 'Yêu cầu token xác thực'}, status=status.HTTP_401_UNAUTHORIZED)
-
-        user_data = self.get_user_info(token)
-        if not user_data:
-            return Response({'error': 'Xác thực người dùng thất bại'}, status=status.HTTP_401_UNAUTHORIZED)
-
-        user_id = user_data.get('id')
-        role = user_data.get('role')
-
-        if role != "lecturer":
-            return Response({'error': 'Chỉ giảng viên mới có thể xóa quiz'}, status=status.HTTP_403_FORBIDDEN)
-
-        # Kiểm tra xem quiz có thuộc về khóa học của người dùng không
-        quiz = Quiz.objects.get(id=quiz_id)
-        # try:
-        #     quiz = Quiz.objects.get(id=quiz_id)
-        #     course = Course.objects.get(id=quiz.course_id, created_by=user_id)
-        # except (Quiz.DoesNotExist, Course.DoesNotExist):
-        #     return Response({'error': 'Không tìm thấy quiz hoặc bạn không có quyền xóa'}, status=status.HTTP_404_NOT_FOUND)
-
-        # Xóa quiz
-        quiz.delete()
-        return Response({'message': 'Quiz đã được xóa thành công.'}, status=status.HTTP_204_NO_CONTENT)
 
 
 class ManageQuestionView(APIView):
