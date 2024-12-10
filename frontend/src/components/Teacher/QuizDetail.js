@@ -50,6 +50,7 @@ const QuizDetail = () => {
   // Modal thêm/sửa câu hỏi
   const showQuestionModal = (question = null) => {
     setEditingQuestion(question);
+    console.log('question: ', question)
     if (question) {
       questionForm.setFieldsValue({
         text: question.text,
@@ -78,12 +79,12 @@ const QuizDetail = () => {
       // console.log('payload: ', payload)
       // API call để thêm/sửa câu hỏi
       try {
-        // API call để xóa câu hỏi
         const token = localStorage.getItem('accessToken');
-        const response = await axios.put(`http://127.0.0.1:5000/api/questions/${quiz.id}/`, {
+        const response = await axios.put(`http://127.0.0.1:5000/api/questions/${editingQuestion.id}/`,
           payload,
-          headers: { Authorization: `Bearer ${token}` }
-        });
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
         message.success(response.data.message || 'Câu hỏi đã được cập nhật thành công!');
         fetchQuestions();
         message.success('Xóa câu hỏi thành công!');
