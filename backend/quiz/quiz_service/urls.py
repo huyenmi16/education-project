@@ -20,7 +20,7 @@ urlpatterns = [
     # hiển thị tất cả bộ quizz nv duy nhất
 
     path('quiz/<int:quiz_id>/questions/', ManageQuestionView.as_view(), name='add_question'),  # POST QUESTION
-    path('quiz/<int:quiz_id>/questions/<int:question_id>/update/', ManageQuestionView.as_view(),
+    path('questions/<int:question_id>/', ManageQuestionView.as_view(),
          name='manage_question_update'),  # PUT
     path('questions/<int:question_id>/', ManageQuestionView.as_view(), name='manage_question_delete') # DELETE QUESTION
 ]

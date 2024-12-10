@@ -67,7 +67,29 @@ const QuizDetail = () => {
 
   const handleQuestionSubmit = async (values) => {
     try {
+      console.log('values: ', values)
+      const payload = {
+        question: {
+          text: values.text,
+          course_id: quiz.course_id
+        },
+        options: values.options
+      }
+      // console.log('payload: ', payload)
       // API call để thêm/sửa câu hỏi
+      try {
+        // API call để xóa câu hỏi
+        const token = localStorage.getItem('accessToken');
+        const response = await axios.put(`http://127.0.0.1:5000/api/questions/${quiz.id}/`, {
+          payload,
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        message.success(response.data.message || 'Câu hỏi đã được cập nhật thành công!');
+        fetchQuestions();
+        message.success('Xóa câu hỏi thành công!');
+      } catch (error) {
+        message.error('Có lỗi xảy ra!');
+      }
 
       message.success(`${editingQuestion ? 'Sửa' : 'Thêm'} câu hỏi thành công!`);
       setIsQuestionModalVisible(false);
