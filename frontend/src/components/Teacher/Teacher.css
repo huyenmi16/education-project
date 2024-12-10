@@ -1,0 +1,113 @@
+/* Profile Card */
+.profile-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 20px;
+    border: 1px solid #d9d9d9;
+    border-radius: 8px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Profile info */
+.profile-card p {
+    font-size: 16px;
+    margin: 10px 0;
+}
+
+.profile-card strong {
+    font-weight: bold;
+}
+
+/* Profile image */
+.profile-card img {
+    max-width: 100%;
+    max-height: 200px;
+    object-fit: cover;
+    margin-bottom: 10px;
+    border-radius: 8px;
+}
+
+/* Edit button */
+.profile-card .edit-button {
+    font-size: 20px;
+    color: #1890ff;
+    cursor: pointer;
+    margin-left: auto;
+}
+
+.profile-card .edit-button:hover {
+    color: #40a9ff;
+}
+
+/* Upload buttons */
+.upload-button {
+    background-color: #1890ff;
+    border: none;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.upload-button:hover {
+    background-color: #40a9ff;
+}
+
+/* Profile Card button */
+.profile-card .change-password-button {
+    background-color: #1890ff;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.profile-card .change-password-button:hover {
+    background-color: #40a9ff;
+}
+
+/* Modal Form */
+.modal-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-form .ant-form-item {
+    margin-bottom: 16px;
+}
+
+.modal-form button {
+    background-color: #1890ff;
+    border: none;
+    color: white;
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.modal-form button:hover {
+    background-color: #40a9ff;
+}
+
+/* Certificate link */
+.profile-card .certificate-link {
+    margin-top: 10px;
+}
+
+.profile-card .certificate-link a {
+    color: #1890ff;
+    text-decoration: none;
+    font-size: 16px;
+}
+
+.profile-card .certificate-link a:hover {
+    color: #40a9ff;
+}
