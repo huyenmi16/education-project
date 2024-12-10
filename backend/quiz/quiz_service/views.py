@@ -355,27 +355,47 @@ class ManageQuestionView(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def put(self, request, quiz_id, question_id, format=None):
-        """Cập nhật câu hỏi."""
+    def put(self, request, question_id, format=None):
+        """Cập nhật câu hỏi và các lựa chọn đáp án."""
+
+        # Kiểm tra quyền (nếu cần thiết)
         user_id, role = get_user_id_from_token(request)
         if role != "lecturer":
             return Response({'error': 'Chỉ giảng viên mới có thể cập nhật câu hỏi'}, status=status.HTTP_403_FORBIDDEN)
 
         try:
-            question = Question.objects.get(id=question_id, quiz_id=quiz_id)
+            question = Question.objects.get(id=question_id)
         except Question.DoesNotExist:
             return Response({'error': 'Không tìm thấy câu hỏi'}, status=status.HTTP_404_NOT_FOUND)
+        quiz_id = question.quiz_id
+        try:
+            quiz = Quiz.objects.get(id=quiz_id)
+        except Quiz.DoesNotExist:
+            return Response({'error': 'Không tìm thấy quiz'}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = QuestionSerializer(question, data=request.data, partial=True)
+        question.delete()
+        data = {
+            'text': request.data['question']['text'],
+            'course_id': request.data['question']['course_id'],
+            'options': request.data['options']  # Truyền trực tiếp options từ payload
+        }
+
+        serializer = QuestionSerializer(data=data)
         if serializer.is_valid():
-            question = serializer.save()
+            # Lưu question với quiz
+            question = serializer.save(quiz=quiz)
             return Response(
                 {
-                    'message': 'Câu hỏi đã được cập nhật thành công.',
-                    'data': QuestionSerializer(question).data
+                    'message': 'Câu hỏi và các lựa chọn đáp án đã được cập nhật thành công.',
+                    'data': {
+                        'question': QuestionSerializer(question).data,
+                        'options': OptionSerializer(question.options.all(), many=True).data
+                    }
                 },
                 status=status.HTTP_200_OK
             )
+        # Trả về kết quả
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, question_id, format=None):
