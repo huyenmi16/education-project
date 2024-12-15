@@ -186,13 +186,14 @@ class ChangePasswordSerializer(serializers.Serializer):
 class UpdateProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['username', 'phone_number', 'address']
+        fields = ['username', 'phone_number', 'address','image']
 
     def update(self, instance, validated_data):
         # Cập nhật các trường của đối tượng instance với dữ liệu đã xác thực
         instance.username = validated_data.get('username', instance.username)
         instance.phone_number = validated_data.get('phone_number', instance.phone_number)
         instance.address = validated_data.get('address', instance.address)
+        instance.image = validated_data.get('image', instance.image)
         instance.save()
         
         return instance

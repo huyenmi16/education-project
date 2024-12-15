@@ -53,7 +53,8 @@ const QuizCard = ({ quiz, updateQuizzes }) => {
     if (uploadedFile) {
       formData.delete('image');
       formData.append('image', uploadedFile); // If a new image is uploaded
-    } else if (quiz.image) {
+    } 
+    else if (quiz.image) {
       try {
         // Fetch the existing image URL
         const response = await fetch(quiz.image);

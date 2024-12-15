@@ -188,3 +188,19 @@
 .logout-btn:hover {
     background-color: #4dc7ff;
 }
+
+.profile-container {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+  
+  /* Ảnh đại diện bo tròn */
+  .profile-avatar {
+    width: 40px; /* Kích thước ảnh */
+    height: 40px;
+    border-radius: 50%; /* Bo tròn hoàn toàn */
+    object-fit: cover; /* Giữ tỉ lệ ảnh */
+    margin-right: 10px; /* Khoảng cách giữa ảnh và tên */
+    border: 2px solid #ccc; /* Đường viền (nếu cần) */
+  }

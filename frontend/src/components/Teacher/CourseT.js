@@ -51,8 +51,6 @@ const Course = () => {
     fetchCourses();
   }, []);
   useEffect(() => {
-    // Giả sử có thể thêm các tác vụ khác trong useEffect, ví dụ gọi API
-    console.log('Đã xóa course_id:', courses);
   }, [courses]);  // Chạy lại mỗi khi `items` thay đổi
 
 
@@ -134,9 +132,6 @@ const Course = () => {
       const duration = editCourseForm.getFieldValue('duration')
       formattedDuration = moment(duration, 'HH:mm:ss').format('HH:mm:ss');
     }
-    console.log('duration: ', editCourseForm.getFieldValue('duration'))
-    console.log('formattedDuration: ', formattedDuration)
-    console.log('values.duration: ', values.duration)
     const formData = new FormData();
     formData.append('title', values.courseName);
     formData.append('description', values.description);
@@ -147,8 +142,32 @@ const Course = () => {
 
     if (imageFile) {
       formData.delete('image');
-      formData.append('image', imageFile); // Nếu có ảnh mới
+      formData.append('image', imageFile);
     }
+    else if (selectedCourse.image) {
+      try {
+          // Chuẩn hóa đường dẫn URL cho hình ảnh
+          const imageUrl = 'http://127.0.0.1:8000' + selectedCourse.image;
+          
+          // Sử dụng imageUrl để fetch
+          const response = await fetch(imageUrl);
+          const blob = await response.blob();
+  
+          // Get the file extension based on the MIME type of the blob
+          const mimeType = blob.type.split('/')[1]; // Get the file type (e.g., 'jpeg', 'png')
+          const validExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp']; // List of supported extensions
+          const extension = validExtensions.includes(mimeType) ? mimeType : 'jpg'; // Default to 'jpg' if invalid extension
+  
+          // Create the image file using the correct extension
+          const imaFile = new File([blob], `course-image.${extension}`, { type: blob.type });
+          formData.append('image', imaFile); // Append the image as binary data
+      } catch (error) {
+          message.error('Không thể tải ảnh cũ');
+      }
+   }
+  
+
+    console.log(selectedCourse)
 
     try {
       const response = await axios.put(

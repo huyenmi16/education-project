@@ -23,7 +23,13 @@ const CourseCard = ({ id, title, price, time, teacher, participants, imageUrl, i
       hoverable
       cover={
         <div style={{ position: 'relative' }}>
-          <img alt={title} src={imageUrl} style={{ height: 200, objectFit: 'cover' }} />
+          <img alt={title} src={imageUrl} style={{
+            height: 200, 
+            width: '100%', 
+            objectFit: 'cover', 
+            maxWidth: '100%', 
+            maxHeight: '100%'
+          }} />
           {is_registered && (
             <div
               style={{

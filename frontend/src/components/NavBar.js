@@ -5,11 +5,12 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass, faCaretDown } from '@fortawesome/free-solid-svg-icons';
 import './Navbar.css';
 
-const Navbar = ({courses}) => {
-    const [username, setUsername] = useState(""); // Khởi tạo state cho username
+const Navbar = ({ courses, profileData }) => {
+    const [userData, setUserData] = useState([]); // Khởi tạo state cho username
     const [searchQuery, setSearchQuery] = useState("");
     const [allCourses, setAllCourses] = useState([]); // Lưu trữ danh sách khóa học ban đầu
     const navigate = useNavigate();
+
 
     // Gọi API để lấy thông tin người dùng
     useEffect(() => {
@@ -28,7 +29,7 @@ const Navbar = ({courses}) => {
 
                     if (response.ok) {
                         const data = await response.json();
-                        setUsername(data.username); // Lưu username từ response vào state
+                        setUserData(data); // Lưu username từ response vào state
                     } else {
                         console.error("Failed to fetch profile");
                     }
@@ -47,6 +48,12 @@ const Navbar = ({courses}) => {
             setAllCourses(courses);
         }
     }, [courses]);
+
+    useEffect(() => {
+        if (profileData) {
+            setUserData(profileData);
+        }
+    }, [profileData]);
 
     // Xử lý khi click vào "Profile"
     const handleProfileClick = () => {
@@ -114,7 +121,14 @@ const Navbar = ({courses}) => {
             <div className="user-profile">
                 <Dropdown overlay={menu} trigger={['click']} className="profile-menu">
                     <div onClick={(e) => e.preventDefault()}>
-                        <span className="username">{username || "Guest"}</span>
+                        <img
+                            src={`http://localhost:4000${userData.image}`} // Cập nhật đường dẫn ảnh
+                            alt="Avatar"
+                            className="profile-avatar"
+                        />
+                        <span className="username">{userData.username || "Guest"}</span>
+
+                        
                         <FontAwesomeIcon icon={faCaretDown} className="dropdown-icon" />
                     </div>
                 </Dropdown>

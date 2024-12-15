@@ -1,113 +1,159 @@
-/* Profile Card */
-.profile-card {
+.teacher-profile-card {
+    max-width: 1200px;
+    /* Độ rộng tối đa */
+    width: 100%;
+    /* Chiếm toàn bộ chiều rộng của parent */
+    margin: 28px auto;
+    /* Căn giữa */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    /* Đổ bóng */
+    border-radius: 12px;
+    /* Bo góc */
+    overflow: hidden;
+    /* Ẩn phần nội dung tràn */
+    background-color: #fff;
+    /* Màu nền */
+}
+
+.teacher-profile-content {
+    display: flex;
+    /* Sử dụng flexbox */
+    flex-direction: row;
+    /* Căn hàng ngang */
+    padding: 30px;
+    /* Khoảng cách bên trong */
+    gap: 40px;
+    /* Khoảng cách giữa các phần tử */
+}
+
+.teacher-profile-details {
+    flex: 2;
+    /* Chiếm 2/3 chiều ngang */
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    padding: 20px;
-    border: 1px solid #d9d9d9;
-    border-radius: 8px;
-    background-color: #ffffff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    /* Sắp xếp theo chiều dọc */
+    justify-content: center;
+    /* Căn giữa theo chiều dọc */
 }
 
-/* Profile info */
-.profile-card p {
+.teacher-profile-details p {
+    margin-bottom: 15px;
+    /* Khoảng cách giữa các đoạn văn */
     font-size: 16px;
-    margin: 10px 0;
+    /* Kích thước chữ */
+    color: #333;
+    /* Màu chữ */
+    display: flex;
+    align-items: center;
+    /* Căn giữa icon và text */
 }
 
-.profile-card strong {
-    font-weight: bold;
+.teacher-profile-details p strong {
+    color: #0a63b5;
+    /* Màu chữ của tiêu đề */
+    margin-right: 15px;
+    /* Khoảng cách bên phải */
+    min-width: 180px;
+    /* Độ rộng tối thiểu */
+    display: inline-block;
+    /* Giữ trên cùng một dòng */
 }
 
-/* Profile image */
-.profile-card img {
-    max-width: 100%;
-    max-height: 200px;
+.teacher-profile-image {
+    flex: 1;
+    /* Chiếm 1/3 chiều ngang */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* Căn giữa hình ảnh */
+}
+
+.teacher-profile-image img {
+    width: 280px;
+    /* Kích thước hình ảnh */
+    height: 280px;
+    border-radius: 50%;
+    /* Bo tròn hình ảnh */
     object-fit: cover;
-    margin-bottom: 10px;
-    border-radius: 8px;
+    /* Giữ tỉ lệ hình ảnh */
+    border: 4px solid #007ff5;
+    /* Viền */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    /* Đổ bóng hình ảnh */
 }
 
-/* Edit button */
-.profile-card .edit-button {
-    font-size: 20px;
-    color: #1890ff;
-    cursor: pointer;
-    margin-left: auto;
-}
-
-.profile-card .edit-button:hover {
-    color: #40a9ff;
-}
-
-/* Upload buttons */
-.upload-button {
-    background-color: #1890ff;
-    border: none;
-    color: white;
-    padding: 6px 12px;
-    border-radius: 4px;
-    font-size: 14px;
-    cursor: pointer;
-    margin-top: 10px;
-}
-
-.upload-button:hover {
-    background-color: #40a9ff;
-}
-
-/* Profile Card button */
-.profile-card .change-password-button {
-    background-color: #1890ff;
-    border: none;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 4px;
-    font-size: 16px;
-    cursor: pointer;
-    margin-top: 10px;
-}
-
-.profile-card .change-password-button:hover {
-    background-color: #40a9ff;
-}
-
-/* Modal Form */
-.modal-form {
+.teacher-profile-actions {
     display: flex;
-    flex-direction: column;
+    /* Sử dụng flexbox */
+    justify-content: flex-end;
+    /* Căn phải */
+    gap: 20px;
+    /* Khoảng cách giữa các nút */
+    padding: 15px 30px;
+    /* Khoảng cách bên trong */
+    background-color: #f0f2f5;
+    /* Màu nền */
 }
 
-.modal-form .ant-form-item {
-    margin-bottom: 16px;
-}
-
-.modal-form button {
-    background-color: #1890ff;
-    border: none;
-    color: white;
-    padding: 10px;
-    border-radius: 4px;
-    font-size: 16px;
-    cursor: pointer;
-}
-
-.modal-form button:hover {
-    background-color: #40a9ff;
-}
-
-/* Certificate link */
-.profile-card .certificate-link {
-    margin-top: 10px;
-}
-
-.profile-card .certificate-link a {
+.teacher-profile-actions .anticon {
+    font-size: 22px;
+    /* Kích thước icon */
     color: #1890ff;
-    text-decoration: none;
-    font-size: 16px;
+    /* Màu mặc định */
+    cursor: pointer;
+    /* Con trỏ chuột */
+    transition: color 0.3s ease;
+    /* Hiệu ứng chuyển màu */
 }
 
-.profile-card .certificate-link a:hover {
+.teacher-profile-actions .anticon:hover {
     color: #40a9ff;
+    /* Màu khi hover */
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .teacher-profile-content {
+        flex-direction: column;
+        /* Sắp xếp dọc */
+        align-items: center;
+        /* Căn giữa các phần tử */
+        padding: 20px;
+        /* Giảm padding */
+        gap: 20px;
+        /* Giảm khoảng cách */
+    }
+
+    .teacher-profile-details {
+        align-items: center;
+        /* Căn giữa nội dung */
+        text-align: center;
+        /* Canh giữa text */
+    }
+
+    .teacher-profile-details p strong {
+        min-width: auto;
+        /* Loại bỏ độ rộng tối thiểu */
+        display: block;
+        /* Chuyển xuống dòng */
+        margin-bottom: 5px;
+        /* Khoảng cách dưới */
+    }
+
+    .teacher-profile-image img {
+        width: 180px;
+        /* Giảm kích thước hình ảnh */
+        height: 180px;
+    }
+
+    .teacher-profile-actions {
+        flex-direction: column;
+        /* Chuyển các nút thành dọc */
+        align-items: center;
+        /* Căn giữa */
+        gap: 10px;
+        /* Giảm khoảng cách */
+        padding: 10px;
+        /* Giảm padding */
+    }
 }
