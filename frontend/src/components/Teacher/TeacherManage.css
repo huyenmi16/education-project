@@ -1,0 +1,169 @@
+/* TeacherManage.css */
+
+/* Color Palette */
+:root {
+    --primary-color: #4a90e2;
+    --secondary-color: #5f27cd;
+    --background-light: #f4f6f9;
+    --text-color: #2c3e50;
+    --icon-background-teachers: #ff6b6b;
+    --icon-background-courses: #4ecdc4;
+    --icon-background-quizzes: #45b7d1;
+}
+
+/* Global Layout Styling */
+.ant-layout {
+    background: var(--background-light);
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+}
+
+/* Sidebar Enhancements */
+.ant-layout-sider {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Keeps the logout button at the bottom */
+}
+
+/* Menu Item Styling */
+.ant-menu-item {
+    display: flex;
+    align-items: center;
+    margin: 20px 4px !important;
+    margin-top: 20px; /* Điều chỉnh khoảng cách trên để đẩy item xuống */
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Icon Styling */
+.ant-menu-item .anticon {
+    font-size: 20px;
+    margin-right: 12px;
+    background-color: rgba(255,255,255,0.2);
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+/* Specific Icon Backgrounds */
+.ant-menu-item[data-key="teachers"] .anticon {
+    background-color: var(--icon-background-teachers);
+}
+
+.ant-menu-item[data-key="courses"] .anticon {
+    background-color: var(--icon-background-courses);
+}
+
+.ant-menu-item[data-key="quizzes"] .anticon {
+    background-color: var(--icon-background-quizzes);
+}
+
+.ant-menu-item:hover .anticon,
+.ant-menu-item-selected .anticon {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* Menu Item Hover and Selected States */
+.ant-menu-item:hover,
+.ant-menu-item-selected {
+    color: white !important;
+    background-color: rgba(255,255,255,0.1) !important;
+}
+
+/* Header Styling */
+.ant-layout-header {
+    background: white !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    padding: 0 24px !important;
+}
+
+.ant-layout-header h2 {
+    color: var(--primary-color);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+}
+
+/* Logout Button */
+.logout-btn {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 48px);
+    background: linear-gradient(135deg, #5e81cb, #233547); /* Màu nền gradient dịu mát, từ xanh dương nhạt đến tím */
+    color: rgb(36, 190, 193) !important; /* Màu chữ dịu, xanh dương */
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+}
+
+
+
+.logout-btn .anticon {
+    font-size: 20px;
+}
+
+/* Scrollbar Styling */
+.ant-layout-content {
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-color) #8a8585;
+}
+
+.ant-layout-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.ant-layout-content::-webkit-scrollbar-track {
+    background: #d3d0d0;
+}
+
+.ant-layout-content::-webkit-scrollbar-thumb {
+    background-color: var(--primary-color);
+    border-radius: 4px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .ant-layout-sider {
+        max-width: 250px !important;
+        width: 250px !important;
+    }
+}
+s
+/* Header Styles */
+.ant-layout-header {
+    background-color: #f0f2f5;
+    padding: 20px 24px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.ant-layout-header h2 {
+    color: #1a73e8;
+    font-size: 20px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    margin: 0;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .ant-layout-header {
+        padding: 16px;
+    }
+
+    .ant-layout-header h2 {
+        font-size: 18px;
+    }
+}

@@ -1,0 +1,117 @@
+.profile-card {
+    max-width: 1000px;
+    margin: 20px auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    height: 80%;
+}
+
+.profile-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.profile-details {
+    flex: 1;
+    padding-right: 20px;
+
+}
+
+
+
+.profile-details p {
+    margin-bottom: 15px;  
+    font-size: 16px;
+    color: #201d1d;
+    display: flex;
+    align-items: center;
+    line-height: 1.6;
+    gap: 10px;
+}
+
+.profile-details p strong {
+    color: #0a63b5;
+    margin-right: 15px; 
+    min-width: 180px;  
+    display: inline-block;
+}
+
+.profile-details p .anticon {
+    color: #1890ff;
+    margin-right: 8px;
+}
+
+.profile-image {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.profile-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-actions {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.profile-actions .anticon {
+    font-size: 18px;
+    cursor: pointer;
+    color: #1890ff;
+    transition: color 0.3s ease;
+}
+
+.profile-actions .anticon:hover {
+    color: #40a9ff;
+}
+
+/* Modal Styles */
+.ant-modal-content {
+    border-radius: 8px;
+}
+
+.ant-form-item-label {
+    font-weight: 500;
+}
+
+.ant-upload-picture-card-wrapper {
+    display: flex;
+    justify-content: center;
+}
+
+.ant-upload.ant-upload-select-picture-card {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto;
+}
+
+.ant-upload-list-picture-card .ant-upload-list-item {
+    width: 120px;
+    height: 120px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .profile-content {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .profile-details {
+        text-align: center;
+        padding-right: 0;
+        margin-bottom: 20px;
+    }
+
+    .profile-image {
+        width: 150px;
+        height: 150px;
+    }
+}
