@@ -7,15 +7,14 @@ import './ButtonAction.css'
 const { Content } = Layout;
 const { Panel } = Collapse;
 const { Option } = Select;
+
 const DetailCourseT = () => {
   const [activeKeys, setActiveKeys] = useState([]);
-  const [isExpandedAll, setIsExpandedAll] = useState(false);
   const [course, setCourse] = useState(null);
   const [isEditingChapter, setIsEditingChapter] = useState(false);
   const [isEditingLesson, setIsEditingLesson] = useState(false);
   const [currentChapter, setCurrentChapter] = useState(null);
   const [currentLesson, setCurrentLesson] = useState(null);
-  const [isModalVisible, setIsModalVisible] = useState(false);
   const { id } = useParams();
 
   // Fetch course data from API
@@ -245,6 +244,7 @@ const DetailCourseT = () => {
                 <p>
                   {course.chapters.length} chương ・ {course.chapters.reduce((total, chapter) => total + chapter.lessons.length, 0)} bài học ・ Thời lượng {convertDurationToHours(course.duration)}
                 </p>
+                <br />
                 <Collapse
                   activeKey={activeKeys}
                   onChange={keys => setActiveKeys(keys)}
@@ -254,8 +254,10 @@ const DetailCourseT = () => {
                     <Panel
                       header={
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span>{`${chapter.title} ・ ${chapter.lessons.length} bài học`}</span>
-                          <div>
+                          <div className="header-text">
+                            <span>{`${chapter.title} ・ ${chapter.lessons.length} bài học`}</span>
+                          </div>
+                          <div className="button-actions">
                             <Button
                               icon={<EditOutlined />}
                               onClick={() => openEditChapterModal(chapter)}
@@ -320,35 +322,6 @@ const DetailCourseT = () => {
           </Form.Item>
         </Form>
       </Modal>
-
-      {/* Edit Lesson Modal */}
-      {/* <Modal
-        title="Edit Lesson"
-        visible={isEditingLesson}
-        onCancel={closeEditLessonModal}
-        footer={null}
-      >
-        <Form
-          initialValues={currentLesson}
-          onFinish={handleUpdateLesson}
-        >
-          <Form.Item name="title" label="Title" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="duration" label="Duration (hh:mm:ss)" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-
-         
-          <Form.Item>
-            <Button type="primary" htmlType="submit">
-              Update Lesson
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal> */}
-
-      {/* Edit Lesson Modal */}
 
       <Modal
         title="Edit Lesson"

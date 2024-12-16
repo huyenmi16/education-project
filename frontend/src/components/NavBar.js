@@ -89,7 +89,7 @@ const Navbar = ({ courses, profileData }) => {
                 <span>Profile</span>
             </Menu.Item>
             <Menu.Item key="2" onClick={handleLogout}>
-                <span className="logout-btn">Logout</span>
+                <span className="logout-btn-1">Logout</span>
             </Menu.Item>
         </Menu>
     );

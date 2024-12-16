@@ -1,18 +1,32 @@
 .teacher-profile-card {
-    max-width: 1200px;
-    /* Độ rộng tối đa */
-    width: 100%;
-    /* Chiếm toàn bộ chiều rộng của parent */
-    margin: 28px auto;
-    /* Căn giữa */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    /* Đổ bóng */
-    border-radius: 12px;
-    /* Bo góc */
+    position: relative;
+    background-color: #ebe9e9; 
     overflow: hidden;
-    /* Ẩn phần nội dung tràn */
-    background-color: #fff;
-    /* Màu nền */
+    border-radius: 12px;
+    box-shadow: 
+        0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.teacher-profile-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        120deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.3), 
+        transparent
+    );
+    animation: shimmer 2s infinite linear;
+}
+
+@keyframes shimmer {
+    100% {
+        left: 100%;
+    }
 }
 
 .teacher-profile-content {
