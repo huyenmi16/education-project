@@ -82,11 +82,19 @@ const ListQuiz = () => {
                                     <Card
                                         hoverable
                                         cover={
-                                            <div style={{ position: 'relative' }}>
+                                            <div style={{
+                                                height: '200px',  // Fixed height
+                                                overflow: 'hidden' // Ensure image doesn't overflow
+                                            }}>
                                                 <img
                                                     alt={course.title}
                                                     src={course.imageUrl}
-                                                    style={{ height: 200, objectFit: 'cover' }}
+                                                    style={{
+                                                        width: '100%',       // Full width of the container
+                                                        height: '100%',       // Full height of the container
+                                                        objectFit: 'cover',   // Cover the entire area while maintaining aspect ratio
+                                                        objectPosition: 'center' // Center the image
+                                                    }}
                                                 />
                                                 {course.is_completed && (
                                                     <div
