@@ -25,7 +25,7 @@ REFREST_TOKEN_SECRET='huyen'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost','127.0.0.1']
+ALLOWED_HOSTS = ['*']
 
 
 
@@ -139,7 +139,7 @@ CORS_ALLOW_CREDENTIALS =True
 CORS_ORIGIN_WHITELIST=[
     'http://localhost:3000'
 ]
-
+CORS_ALLOW_ALL_ORIGINS = True
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'user_service.authentication.SafeJWTAuthentication',
