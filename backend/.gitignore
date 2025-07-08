@@ -2,3 +2,8 @@
 /venvbe
 /myenv
 .idea
+/course/media/course_images
+/quiz/media/quiz_images
+/user/media/certificate_images/
+/user/media/user_images
+/quiz/quiz_service/migrations/__pycache__
